@@ -1,5 +1,8 @@
 import { ConvexError, v } from "convex/values"
 import { mutation, query } from "../_generated/server"
+import { supportAgent } from "../system/ai/agent/supportAgent"
+import { saveMessage } from "@convex-dev/agent"
+import { components } from "../_generated/api"
 
 /**
  * Creates a new conversation for a contact session within an organization.
@@ -24,8 +27,19 @@ export const create = mutation({
       })
     }
 
-    // TODO: Replace once functionality for thread creation is developed
-    const threadId = "123"
+    // convex-docx https://docs.convex.dev/agents/threads
+    const { threadId } = await supportAgent.createThread(ctx, {
+      userId: args.organizationId,
+    })
+
+    await saveMessage(ctx, components.agent, {
+      threadId,
+      message: {
+        role: "assistant",
+        // TODO: later modify the widget setting to modify initial message
+        content: "Hello, How can I help you today?",
+      },
+    })
 
     // Persist conversation tied to the session and organization
     const conversationId = await ctx.db.insert("conversations", {
@@ -63,7 +77,10 @@ export const getOne = query({
 
     const conversation = await ctx.db.get(args.conversationId)
     if (!conversation) {
-      return null
+      throw new ConvexError({
+        code: "NOT_FOUND",
+        message: "Conversation not found",
+      })
     }
     /**
      * A caller with a valid session and another conversation ID can read that conversation.
