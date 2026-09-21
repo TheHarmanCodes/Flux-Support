@@ -14,7 +14,7 @@ import {
 import { useAction, useQuery } from "convex/react"
 import { api } from "@workspace/backend/_generated/api"
 import { z } from "zod"
-import { Form, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   AIConversation,
@@ -33,10 +33,9 @@ import {
   AIInputTools,
 } from "@workspace/ui/components/ai/input"
 import { FormField } from "@workspace/ui/components/form"
-import { event } from "next/dist/build/output/log"
 
 const formSchema = z.object({
-  message: z.string().min(1, "Message is required"),
+  message: z.string().trim().min(1, "Message is required"),
 })
 
 /**
@@ -85,6 +84,7 @@ export const WidgetChatScreen = () => {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       message: "",
     },
@@ -95,13 +95,13 @@ export const WidgetChatScreen = () => {
     if (!conversation || !contactSessionId) {
       return
     }
-    form.reset()
 
     await createMessage({
       threadId: conversation.threadId,
       prompt: values.message,
       contactSessionId,
     })
+    form.reset()
   }
 
   return (
@@ -143,7 +143,9 @@ export const WidgetChatScreen = () => {
       >
         <FormField
           control={form.control}
-          disabled={conversation?.status === "resolved"}
+          disabled={
+            conversation?.status === "resolved" || form.formState.isSubmitting
+          }
           name="message"
           render={({ field }) => (
             <AIInputTextarea
@@ -168,9 +170,11 @@ export const WidgetChatScreen = () => {
           <AIInputTools />
           <AIInputSubmit
             disabled={
-              conversation?.status === "resolved" || !form.formState.isValid
+              conversation?.status === "resolved" ||
+              form.formState.isSubmitting ||
+              !form.formState.isValid
             }
-            status="ready"
+            status={form.formState.isSubmitting ? "submitted" : "ready"}
             type="submit"
           />
         </AIInputToolbar>

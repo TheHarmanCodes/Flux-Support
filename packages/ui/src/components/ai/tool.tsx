@@ -125,7 +125,7 @@ export const AIToolResult = ({
   error,
   ...props
 }: AIToolResultProps) => {
-  if (!(result || error)) {
+  if (result == null && error == null) {
     return null
   }
 

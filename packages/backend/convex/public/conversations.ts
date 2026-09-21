@@ -29,7 +29,7 @@ export const create = mutation({
 
     // convex-docx https://docs.convex.dev/agents/threads
     const { threadId } = await supportAgent.createThread(ctx, {
-      userId: args.organizationId,
+      userId: session.organizationId,
     })
 
     await saveMessage(ctx, components.agent, {
