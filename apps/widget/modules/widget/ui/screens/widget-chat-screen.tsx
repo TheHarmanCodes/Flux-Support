@@ -33,6 +33,9 @@ import {
   AIInputTools,
 } from "@workspace/ui/components/ai/input"
 import { FormField } from "@workspace/ui/components/form"
+import { useInfiniteScroll } from "@workspace/ui/hooks/use-infinite-scroll"
+import InfiniteScrollTrigger from "@workspace/ui/components/infinite-scroll-trigger"
+import { DicebearAvatar } from "@workspace/ui/components/dicebear-avatar"
 
 const formSchema = z.object({
   message: z.string().trim().min(1, "Message is required"),
@@ -71,7 +74,7 @@ export const WidgetChatScreen = () => {
         }
       : "skip"
   )
-
+  // useThread Messages is a hook that fetches messages from a thread.
   const messages = useThreadMessages(
     api.public.messages.getMany,
     conversation?.threadId && contactSessionId
@@ -81,6 +84,13 @@ export const WidgetChatScreen = () => {
       initialNumItems: 10,
     }
   )
+
+  const { topElementRef, handleLoadMore, canLoadMore, isLoadingMore } =
+    useInfiniteScroll({
+      status: messages.status,
+      loadMore: messages.loadMore,
+      loadSize: 10,
+    })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -120,6 +130,14 @@ export const WidgetChatScreen = () => {
 
       <AIConversation>
         <AIConversationContent>
+          <InfiniteScrollTrigger
+            canLoadMore={canLoadMore}
+            isLoadingMore={isLoadingMore}
+            onLoadMore={handleLoadMore}
+            ref={topElementRef}
+          />
+          {/* toUIMessages is a helper function that transforms MessageDocs into AI SDK "UIMessage"s.
+           This is a convenient data model for displaying messages. */}
           {toUIMessages(messages.results ?? [])?.map((msg) => {
             return (
               <AIMessage
@@ -129,7 +147,13 @@ export const WidgetChatScreen = () => {
                 <AIMessageContent>
                   <AIResponse>{msg.content}</AIResponse>
                 </AIMessageContent>
-                {/* TODO: Add an avatar component */}
+                {msg.role === "assistant" && (
+                  <DicebearAvatar
+                    imageUrl="/logo.svg"
+                    seed="assistant"
+                    size={32}
+                  />
+                )}
               </AIMessage>
             )
           })}
