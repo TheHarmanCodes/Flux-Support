@@ -18,14 +18,18 @@ import { useAtomValue, useSetAtom } from "jotai"
 import {
   contactSessionIdAtomFamily,
   organizationIdAtom,
+  screenAtom,
 } from "../../atoms/widget-atoms"
 
+// zod validation
 const formSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
-  email: z.string().email({ message: "Invalid email" }),
+  name: z.string().trim().min(1, { message: "Name is required" }),
+  email: z.string().trim().email({ message: "Invalid email" }),
 })
 
 export const WidgetAuthScreen = () => {
+  const setScreen = useSetAtom(screenAtom)
+
   const organizationId = useAtomValue(organizationIdAtom)
   const setContactSessionId = useSetAtom(
     contactSessionIdAtomFamily(organizationId || "")
@@ -70,6 +74,7 @@ export const WidgetAuthScreen = () => {
       })
 
       setContactSessionId(contactSessionId)
+      setScreen("selection")
     } catch (err) {
       console.error("Failed to create contact session: ", err)
       // will show a decent msg to user using UI
