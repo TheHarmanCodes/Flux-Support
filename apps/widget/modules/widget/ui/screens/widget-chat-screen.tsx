@@ -116,9 +116,7 @@ export const WidgetChatScreen = () => {
         prompt,
       })
     } catch (err) {
-      form.setError("message", {
-        message: "Unable to send your message. Please try again.",
-      })
+      form.setValue("message", prompt, { shouldValidate: true })
     }
   }
 
