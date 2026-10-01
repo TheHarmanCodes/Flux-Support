@@ -14,6 +14,7 @@ import {
 import { useMutation } from "convex/react"
 import { api } from "@workspace/backend/_generated/api"
 import { useState } from "react"
+import { WidgetFooter } from "../components/widget-footer"
 
 /**
  * Selection screen displayed after successful organization and session initialization.
@@ -73,7 +74,7 @@ export const WidgetSelectionScreen = () => {
           <p className="text-lg">Let&apos;s get you started?</p>
         </div>
       </WidgetHeader>
-      <div className="flex flex-1 flex-col items-center gap-y-4 overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col items-center gap-y-4 overflow-y-auto p-4">
         <Button
           className="h-16 w-full justify-between"
           variant="outline"
@@ -87,6 +88,7 @@ export const WidgetSelectionScreen = () => {
           <ChevronRightIcon />
         </Button>
       </div>
+      <WidgetFooter />
     </>
   )
 }

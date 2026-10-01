@@ -1,4 +1,4 @@
-import { cn } from "cn"
+import { cn } from "@workspace/ui/lib/utils"
 import React from "react"
 import { Button } from "./button"
 

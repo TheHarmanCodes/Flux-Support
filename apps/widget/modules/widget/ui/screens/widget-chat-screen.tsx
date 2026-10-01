@@ -64,7 +64,7 @@ export const WidgetChatScreen = () => {
     setScreen("selection")
   }
 
-  /* it loads the conversations if client have a valid session */
+  /* it loads the conversations if client has a valid session */
   const conversation = useQuery(
     api.public.conversations.getOne,
     conversationId && contactSessionId
@@ -102,16 +102,22 @@ export const WidgetChatScreen = () => {
 
   const createMessage = useAction(api.public.messages.create)
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!conversation || !contactSessionId) {
+    const prompt = form.getValues().message?.trim()
+
+    if (!prompt || !conversation || !contactSessionId) {
       return
     }
 
-    await createMessage({
-      threadId: conversation.threadId,
-      prompt: values.message,
-      contactSessionId,
-    })
-    form.reset()
+    try {
+      form.reset()
+      await createMessage({
+        threadId: conversation.threadId,
+        contactSessionId,
+        prompt,
+      })
+    } catch (err) {
+      form.setValue("message", prompt, { shouldValidate: true })
+    }
   }
 
   return (
@@ -160,9 +166,8 @@ export const WidgetChatScreen = () => {
         </AIConversationContent>
       </AIConversation>
       {/* TODO: Add suggestions later on */}
-
       <AIInput
-        className="absolute inset-x-0 bottom-0 rounded-none border-x-0 border-b-0"
+        className="bottom-0 rounded-none border-x-0 border-b-0"
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <FormField
