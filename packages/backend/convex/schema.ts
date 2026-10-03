@@ -24,22 +24,22 @@ export default defineSchema({
     email: v.string(),
     organizationId: v.string(),
     expiresAt: v.number(),
-    metadata: v.optional(
-      v.object({
-        userAgent: v.optional(v.string()),
-        language: v.optional(v.string()),
-        languages: v.optional(v.string()),
-        platform: v.optional(v.string()),
-        vendor: v.optional(v.string()),
-        screenResolution: v.optional(v.string()),
-        viewportSize: v.optional(v.string()),
-        timezone: v.optional(v.string()),
-        timezoneOffset: v.optional(v.number()),
-        cookieEnabled: v.optional(v.boolean()),
-        referrer: v.optional(v.string()),
-        currentUrl: v.optional(v.string()),
+    metadata: v
+      .object({
+        userAgent: v.string().optional(),
+        language: v.string().optional(),
+        languages: v.string().optional(),
+        platform: v.string().optional(),
+        vendor: v.string().optional(),
+        screenResolution: v.string().optional(),
+        viewportSize: v.string().optional(),
+        timezone: v.string().optional(),
+        timezoneOffset: v.number().optional(),
+        cookieEnabled: v.boolean().optional(),
+        referrer: v.string().optional(),
+        currentUrl: v.string().optional(),
       })
-    ),
+      .optional(),
   })
     .index("by_organizationId", ["organizationId"])
     .index("by_expires_at", ["expiresAt"]),

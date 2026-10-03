@@ -1,8 +1,6 @@
 import React from "react"
 
 const Page = () => {
-  return (
-    <div>Conversations</div>
-  )
+  return <div className="flex h-full flex-1">Conversations</div>
 }
 export default Page
