@@ -1,0 +1,214 @@
+"use client"
+
+import { statusFilterAtom } from "@/app/modules/atoms"
+import { filterItems } from "@/app/modules/constants"
+import { getCountryFlagUrl, getCountryFromTimezone } from "@/lib/country-utils"
+import { api } from "@workspace/backend/_generated/api"
+import { ConversationStatusIcon } from "@workspace/ui/components/conversation-status-icon"
+import { DicebearAvatar } from "@workspace/ui/components/dicebear-avatar"
+import InfiniteScrollTrigger from "@workspace/ui/components/infinite-scroll-trigger"
+import { ScrollArea } from "@workspace/ui/components/scroll-area"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+import { Skeleton } from "@workspace/ui/components/skeleton"
+import { useInfiniteScroll } from "@workspace/ui/hooks/use-infinite-scroll"
+import { cn } from "@workspace/ui/lib/utils"
+import { usePaginatedQuery } from "convex/react"
+import { formatDistanceToNow } from "date-fns"
+import { useAtomValue, useSetAtom } from "jotai"
+import { CornerUpLeftIcon } from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import React from "react"
+
+export const ConversationsPanel = () => {
+  const pathname = usePathname()
+  const statusFilter = useAtomValue(statusFilterAtom)
+  const setStatusFilter = useSetAtom(statusFilterAtom)
+
+  const conversations = usePaginatedQuery(
+    api.private.conversations.getMany,
+    {
+      status: statusFilter === "all" ? undefined : statusFilter,
+    },
+    {
+      initialNumItems: 10,
+    }
+  )
+
+  const {
+    topElementRef,
+    handleLoadMore,
+    canLoadMore,
+    isLoadingMore,
+    isLoadingFirstPage,
+  } = useInfiniteScroll({
+    status: conversations.status,
+    loadMore: conversations.loadMore,
+    loadSize: 10,
+  })
+
+  return (
+    <div className="flex h-full w-full flex-col bg-background text-sidebar-foreground">
+      <div className="flex flex-col gap-3.5 border-b p-2">
+        <Select
+          defaultValue="all"
+          value={statusFilter}
+          onValueChange={(value) =>
+            setStatusFilter(
+              value as "all" | "escalated" | "resolved" | "unresolved"
+            )
+          }
+        >
+          <SelectTrigger className="h-8 border-none px-1.5 shadow-none ring-0 hover:bg-accent hover:text-accent-foreground focus-visible:ring-0">
+            <SelectValue placeholder="Filter">
+              {(value) => {
+                const item = filterItems.find((item) => item.value === value)
+
+                if (!item) return null
+
+                const Icon = item.icon
+
+                return (
+                  <div className="flex items-center gap-2">
+                    <Icon className="size-4" />
+                    <span>{item.label}</span>
+                  </div>
+                )
+              }}
+            </SelectValue>
+          </SelectTrigger>
+
+          <SelectContent className="ml-16">
+            <SelectGroup>
+              {filterItems.map((item) => {
+                const Icon = item.icon
+
+                return (
+                  <SelectItem key={item.value} value={item.value}>
+                    <div className="flex items-center gap-2">
+                      <Icon className="size-4" />
+                      <span>{item.label}</span>
+                    </div>
+                  </SelectItem>
+                )
+              })}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+      {isLoadingFirstPage ? (
+        <SkeletonConversations />
+      ) : (
+        <ScrollArea className="max-h-[calc(100vh-53px)]">
+          <div className="flex w-full flex-1 flex-col text-sm">
+            {conversations.results.map((conversation) => {
+              const isLastMessageFromOperator =
+                conversation.lastMessage?.message?.role !== "user"
+
+              const country = getCountryFromTimezone(
+                conversation.contactSession.metadata?.timezone
+              )
+
+              const countryFlagUrl = country?.code
+                ? getCountryFlagUrl(country?.code)
+                : undefined
+
+              return (
+                <Link
+                  key={conversation._id}
+                  href={`/conversations/${conversation._id}`}
+                  className={cn(
+                    "relative flex cursor-pointer items-start gap-3 border-b p-4 py-5 text-sm leading-tight hover:bg-accent hover:text-accent-foreground",
+                    /* if conversation is selected and visible on right side layout*/
+                    pathname === `/conversations/${conversation._id}` &&
+                      "bg-accent text-accent-foreground"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "absolute top-1/2 left-0 h-[64%] w-1 -translate-y-1/2 rounded-r-full bg-neutral-300 opacity-0 transition-opacity",
+                      pathname === `/conversations/${conversation._id}` &&
+                        "opacity-100"
+                    )}
+                  />
+                  <DicebearAvatar
+                    seed={conversation.contactSession._id}
+                    badgeImageUrl={countryFlagUrl}
+                    size={40}
+                  />
+                  <div className="flex-1">
+                    <div className="flex w-full items-center gap-2">
+                      <span className="truncate font-semibold">
+                        {conversation.contactSession.name}
+                      </span>
+                      <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                        {formatDistanceToNow(conversation._creationTime)}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <div className="flex w-0 grow items-center gap-1">
+                        {isLastMessageFromOperator && (
+                          <CornerUpLeftIcon className="size-3 shrink-0 text-muted-foreground" />
+                        )}
+                        <span
+                          className={cn(
+                            "line-clamp-1 text-muted-foreground md:text-sm lg:text-xs",
+                            !isLastMessageFromOperator && "font-bold text-black"
+                          )}
+                        >
+                          {conversation.lastMessage?.text}
+                        </span>
+                      </div>
+                      <ConversationStatusIcon
+                        status={conversation.status}
+                        className="xl:p-1.5"
+                      />
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+            <InfiniteScrollTrigger
+              canLoadMore={canLoadMore}
+              isLoadingMore={isLoadingMore}
+              onLoadMore={handleLoadMore}
+              ref={topElementRef}
+            />
+          </div>
+        </ScrollArea>
+      )}
+    </div>
+  )
+}
+
+export const SkeletonConversations = () => {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
+      <div className="relative flex w-full min-w-0 flex-col p-2">
+        <div className="w-full space-y-2">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div className="flex items-start gap-3 rounded-lg p-4" key={index}>
+              <Skeleton className="h-10 w-10 shrink-0 rounded-full bg-muted-foreground/10" />
+              <div className="min-w-0 flex-1">
+                <div className="flex w-full items-center gap-2">
+                  <Skeleton className="h-4 w-24 bg-muted-foreground/10" />
+                  <Skeleton className="ml-auto h-3 w-12 shrink-0 bg-muted-foreground/10" />
+                </div>
+                <div className="mt-2">
+                  <Skeleton className="h-3 w-full bg-muted-foreground/10" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -86,7 +86,7 @@ export const DashbordSidebar = () => {
                 appearance={{
                   elements: {
                     rootBox: "w-full! h-8!",
-                    avatarBox: "size-4! rounded-sm!",
+                    avatarBox: "size-6! rounded-sm!",
                     organizationSwitcherTrigger:
                       "w-full! justify-start! group-data-[collapsable=icon]:size-8! group-data-[collapsable=icon]:p-2!",
                     organizationPreview:
@@ -195,7 +195,8 @@ export const DashbordSidebar = () => {
                     "w-full! flex-row-reverse! justify-end! gap-2! group-data-[collapsable-icon]:justify-center! text-sidebar-foreground!",
                   userButtonOuterIdentifier:
                     "pl-0! group-data-[collapsible=icon]:hidden!",
-                  avatarBox: "size-4!",
+                  avatarBox:
+                    "size-6! group-data-[collapsible=icon]:size-5! duration-300! ease-in-out!",
                 },
               }}
             />
