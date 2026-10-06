@@ -12,7 +12,8 @@ export const DashboardLayout = async ({
   children: React.ReactNode
 }) => {
   const cookieStore = await cookies()
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
+  // Keep the sidebar open when the cookie is absent (initially when user first-time visitor, the sidebar will be in open state)
+  const defaultOpen = cookieStore.get("sidebar_state")?.value === "false"
 
   return (
     <AuthGuard>
