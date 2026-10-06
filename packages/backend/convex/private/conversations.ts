@@ -5,6 +5,61 @@ import { MessageDoc } from "@convex-dev/agent"
 import { paginationOptsValidator, PaginationResult } from "convex/server"
 import { Doc } from "../_generated/dataModel"
 
+export const getOne = query({
+  args: {
+    conversationId: v.id("conversations"),
+  },
+  handler: async (ctx, args) => {
+    // validating user is logged in
+    // A promise that resolves to a UserIdentity if the Convex client was configured with a valid ID token, or if not, will return null
+    const identity = await ctx.auth.getUserIdentity()
+
+    if (identity === null) {
+      throw new ConvexError({
+        code: "UNAUTHORIZED",
+        message: "Identity not found",
+      })
+    }
+
+    const orgId = (identity?.o as { id?: string })?.id ?? ""
+    if (!orgId) {
+      throw new ConvexError({
+        code: "UNAUTHORIZED",
+        message: "Organization not found",
+      })
+    }
+
+    const conversation = await ctx.db.get(args.conversationId)
+    // if we don't get any conversation related to provided conversationId from db
+    if (!conversation) {
+      throw new ConvexError({
+        code: "NOT_FOUND",
+        message: "Conversation not found",
+      })
+    }
+
+    if (conversation.organizationId !== orgId) {
+      throw new ConvexError({
+        code: "UNAUTHORIZED",
+        message: "Invalid Organization Id",
+      })
+    }
+
+    const contactSession = await ctx.db.get(conversation.contactSessionId)
+    if (!contactSession) {
+      throw new ConvexError({
+        code: "NOT_FOUND",
+        message: "Contact Session not found",
+      })
+    }
+
+    return {
+      ...conversation,
+      contactSession,
+    }
+  },
+})
+
 // get all conversations for organizations (private func)
 export const getMany = query({
   args: {
