@@ -11,6 +11,7 @@ const ConversationsLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <ResizablePanelGroup className="h-full flex-1" orientation="horizontal">
       <ResizablePanel defaultSize="30%" maxSize="30%" minSize="20%">
+        {/* Left side conversational Panel */}
         <ConversationsPanel />
       </ResizablePanel>
 

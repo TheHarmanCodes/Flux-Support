@@ -2,7 +2,6 @@ import { ConvexError, v } from "convex/values"
 import { action, query } from "../_generated/server"
 import { internal } from "../_generated/api"
 import { supportAgent } from "../system/ai/agent/supportAgent"
-import { hasSubscribers } from "diagnostics_channel"
 import { paginationOptsValidator } from "convex/server"
 /*
  * action are special type of functions in convex used to query third party services

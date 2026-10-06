@@ -1,6 +1,10 @@
+import ConversationView from "@/app/modules/dashboard/ui/views/conversations-view"
 import React from "react"
 
 const Page = () => {
-  return <div className="flex h-full flex-1">Conversations</div>
+  {
+    /* Page of /conversations */
+  }
+  return <ConversationView />
 }
 export default Page
