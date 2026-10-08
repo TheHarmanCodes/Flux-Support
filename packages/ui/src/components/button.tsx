@@ -20,6 +20,10 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         transparent:
           "bg-transparent text-primary-foreground hover:bg-transparent hover:text-primary-foreground/80",
+        tertiary:
+          "bg-gradient-to-b from-[#3FB62F] to-[#318d25] text-white hover:to-[#3FB62F]/90 hover:text-white",
+        warning:
+          "bg-gradient-to-b from-yellow-500 to-[#be8b00] text-white hover:to-[#be8b00]/90 hover:text-white",
       },
       size: {
         default:
