@@ -1,6 +1,6 @@
 import React from "react"
 import { Id } from "@workspace/backend/_generated/dataModel"
-import ConversationIdView from "@/app/modules/dashboard/ui/views/conversation-id-view"
+import { ConversationIdView } from "@/app/modules/dashboard/ui/views/conversation-id-view"
 
 const Page = async ({
   params,

@@ -1,8 +1,11 @@
 import { ConvexError, v } from "convex/values"
 import { action, query } from "../_generated/server"
-import { internal } from "../_generated/api"
+import { components, internal } from "../_generated/api"
 import { supportAgent } from "../system/ai/agent/supportAgent"
 import { paginationOptsValidator } from "convex/server"
+import { escalateConversation } from "../system/ai/tools/escalateConversation"
+import { resolveConversation } from "../system/ai/tools/resolveConveration"
+import { saveMessage } from "@convex-dev/agent"
 /*
  * action are special type of functions in convex used to query third party services
  * https://docs.convex.dev/functions/internal-functions
@@ -53,17 +56,29 @@ export const create = action({
     }
 
     // TODO: Implement subscription check
+    const shouldTriggerAgent = conversation.status === "unresolved"
 
-    await supportAgent.generateText(
-      ctx,
-      {
-        // using this threadId the Ai agent will know the previous conversation history
+    if (shouldTriggerAgent) {
+      await supportAgent.generateText(
+        ctx,
+        {
+          // using this threadId the Ai agent will know the previous conversation history
+          threadId: args.threadId,
+        },
+        {
+          prompt: args.prompt,
+          tools: {
+            escalateConversation,
+            resolveConversation,
+          },
+        }
+      )
+    } else {
+      await saveMessage(ctx, components.agent, {
         threadId: args.threadId,
-      },
-      {
         prompt: args.prompt,
-      }
-    )
+      })
+    }
   },
 })
 

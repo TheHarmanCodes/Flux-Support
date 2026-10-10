@@ -1,9 +1,11 @@
 import { ConvexError, v } from "convex/values"
-import { mutation, query } from "../_generated/server"
-import { components, internal } from "../_generated/api"
+import { action, mutation, query } from "../_generated/server"
+import { components } from "../_generated/api"
 import { supportAgent } from "../system/ai/agent/supportAgent"
 import { paginationOptsValidator } from "convex/server"
 import { saveMessage } from "@convex-dev/agent"
+import { generateText } from "ai"
+import { google } from "@ai-sdk/google"
 
 export const create = mutation({
   args: {
@@ -119,5 +121,46 @@ export const getMany = query({
     })
 
     return paginated
+  },
+})
+
+// enchanceResponse method help the operators to enhance or paraphrase their messaages
+export const enhanceResponse = action({
+  args: {
+    prompt: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+
+    if (identity === null) {
+      throw new ConvexError({
+        code: "UNAUTHORIZED",
+        message: "Identity not found",
+      })
+    }
+
+    const orgId = (identity?.o as { id?: string })?.id ?? ""
+    if (!orgId) {
+      throw new ConvexError({
+        code: "UNAUTHORIZED",
+        message: "Organization not found",
+      })
+    }
+
+    const response = await generateText({
+      model: google.chat("gemini-3.1-flash-lite"),
+      messages: [
+        {
+          role: "system",
+          content:
+            "You refine customer support chat drafts into professional, clear, and helpful messages in balance length.\n\n- Preserve Intent: Retain all facts, steps, and technical details. Do not add or remove information.\n- Tone & Quality: Make the message polite, professional, and empathetic. Fix grammar and typos.\n- Output Constraint: Output ONLY the enhanced message. No explanations, quotes, or introductory text.",
+        },
+        {
+          role: "user",
+          content: args.prompt,
+        },
+      ],
+    })
+    return response.text
   },
 })
