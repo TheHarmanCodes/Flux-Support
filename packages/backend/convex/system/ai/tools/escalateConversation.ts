@@ -23,6 +23,6 @@ export const escalateConversation = createTool({
       },
     })
 
-    return "Conversation resolved"
+    return "Conversation escalated"
   },
 })

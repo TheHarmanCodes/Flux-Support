@@ -126,7 +126,7 @@ export const ConversationIdView = ({
     }
 
     try {
-      updateConversationStatus({
+      await updateConversationStatus({
         conversationId,
         status: newStatus,
       })
@@ -279,7 +279,7 @@ export const ConversationIdViewLoading = () => {
                 <Skeleton
                   className={`h-9 ${width} rounded-lg bg-neutral-200`}
                 />
-                <Skeleton className={`$ size-8 rounded-full bg-neutral-200`} />
+                <Skeleton className="size-8 rounded-full bg-neutral-200" />
               </div>
             )
           })}
