@@ -19,13 +19,7 @@
   },
   "packageManager": "pnpm@10.33.4",
   "pnpm": {
-    "packageExtensions": {
-      "@convex-dev/agent@0.1.18": {
-        "dependencies": {
-          "zod": "^3.25.67"
-        }
-      }
-    }
+    "packageExtensions": {}
   },
   "engines": {
     "node": ">=20"

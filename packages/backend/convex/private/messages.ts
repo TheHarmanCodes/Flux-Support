@@ -5,7 +5,7 @@ import { supportAgent } from "../system/ai/agent/supportAgent"
 import { paginationOptsValidator } from "convex/server"
 import { saveMessage } from "@convex-dev/agent"
 import { generateText } from "ai"
-import { google } from "@ai-sdk/google"
+import { groq } from "@ai-sdk/groq"
 
 export const create = mutation({
   args: {
@@ -13,7 +13,7 @@ export const create = mutation({
     conversationId: v.id("conversations"),
   },
   /*
-   * This function will be used by the widget user right so the widget user will attempt
+   * This function will be used by the operator so the operator will attempt
    * to create a new message so we have to verify their contact session.
    */
   handler: async (ctx, args) => {
@@ -54,6 +54,12 @@ export const create = mutation({
       throw new ConvexError({
         code: "UNAUTHORIZED",
         message: "Invalid Organization Id",
+      })
+    }
+
+    if (conversation.status === "unresolved") {
+      await ctx.db.patch(args.conversationId, {
+        status: "escalated",
       })
     }
 
@@ -148,18 +154,13 @@ export const enhanceResponse = action({
     }
 
     const response = await generateText({
-      model: google.chat("gemini-3.1-flash-lite"),
-      messages: [
-        {
-          role: "system",
-          content:
-            "You refine customer support chat drafts into professional, clear, and helpful messages in balance length.\n\n- Preserve Intent: Retain all facts, steps, and technical details. Do not add or remove information.\n- Tone & Quality: Make the message polite, professional, and empathetic. Fix grammar and typos.\n- Output Constraint: Output ONLY the enhanced message. No explanations, quotes, or introductory text.",
-        },
-        {
-          role: "user",
-          content: args.prompt,
-        },
-      ],
+      model: groq("openai/gpt-oss-20b"),
+      system:
+        "You refine customer support chat drafts into professional, clear, and helpful messages with balanced length.\n\n" +
+        "- Preserve Intent: Retain all facts, steps, and technical details. Do not add or remove information.\n" +
+        "- Tone & Quality: Make the message polite, professional, and empathetic. Fix grammar and typos.\n" +
+        "- Output Constraint: Output ONLY the enhanced message. No explanations, quotes, or introductory text.",
+      prompt: args.prompt,
     })
     return response.text
   },
