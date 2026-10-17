@@ -8,13 +8,16 @@
  * @module
  */
 
+import type * as lib_extractTextContent from "../lib/extractTextContent.js";
 import type * as private_conversations from "../private/conversations.js";
+import type * as private_files from "../private/files.js";
 import type * as private_messages from "../private/messages.js";
 import type * as public_contactSession from "../public/contactSession.js";
 import type * as public_conversations from "../public/conversations.js";
 import type * as public_messages from "../public/messages.js";
 import type * as public_organizations from "../public/organizations.js";
 import type * as system_ai_agent_supportAgent from "../system/ai/agent/supportAgent.js";
+import type * as system_ai_rag from "../system/ai/rag.js";
 import type * as system_ai_tools_escalateConversation from "../system/ai/tools/escalateConversation.js";
 import type * as system_ai_tools_resolveConveration from "../system/ai/tools/resolveConveration.js";
 import type * as system_contactSession from "../system/contactSession.js";
@@ -28,13 +31,16 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "lib/extractTextContent": typeof lib_extractTextContent;
   "private/conversations": typeof private_conversations;
+  "private/files": typeof private_files;
   "private/messages": typeof private_messages;
   "public/contactSession": typeof public_contactSession;
   "public/conversations": typeof public_conversations;
   "public/messages": typeof public_messages;
   "public/organizations": typeof public_organizations;
   "system/ai/agent/supportAgent": typeof system_ai_agent_supportAgent;
+  "system/ai/rag": typeof system_ai_rag;
   "system/ai/tools/escalateConversation": typeof system_ai_tools_escalateConversation;
   "system/ai/tools/resolveConveration": typeof system_ai_tools_resolveConveration;
   "system/contactSession": typeof system_contactSession;
@@ -70,4 +76,5 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   agent: import("@convex-dev/agent/_generated/component.js").ComponentApi<"agent">;
+  rag: import("@convex-dev/rag/_generated/component.js").ComponentApi<"rag">;
 };

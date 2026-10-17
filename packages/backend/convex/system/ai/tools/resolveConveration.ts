@@ -3,10 +3,10 @@ import { internal } from "../../../_generated/api"
 import { z } from "zod"
 import { supportAgent } from "../agent/supportAgent"
 
-export const resolveConversation = createTool({
+export const resolveConversation: any = createTool({
   description: "Resolve a conversation",
-  args: z.object({}),
-  handler: async (ctx) => {
+  inputSchema: z.object({}),
+  execute: async (ctx) => {
     if (!ctx.threadId) {
       return "Missing thread ID"
     }

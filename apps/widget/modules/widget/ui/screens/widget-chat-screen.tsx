@@ -151,7 +151,7 @@ export const WidgetChatScreen = () => {
                 key={msg.id}
               >
                 <AIMessageContent>
-                  <AIResponse>{msg.content}</AIResponse>
+                  <AIResponse>{msg.text}</AIResponse>
                 </AIMessageContent>
                 {msg.role === "assistant" && (
                   <DicebearAvatar

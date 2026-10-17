@@ -56,8 +56,9 @@ export const create = action({
     }
 
     // TODO: Implement subscription check
-    const shouldTriggerAgent = conversation.status === "unresolved"
 
+    const shouldTriggerAgent = conversation.status === "unresolved"
+    // if the conversation is unresolved then we will trigger the agent to generate a response
     if (shouldTriggerAgent) {
       await supportAgent.generateText(
         ctx,
@@ -74,6 +75,7 @@ export const create = action({
         }
       )
     } else {
+      // otherwise we will just save the message in the database and the agent will not be triggered
       await saveMessage(ctx, components.agent, {
         threadId: args.threadId,
         prompt: args.prompt,
