@@ -84,6 +84,7 @@ export const addFile = action({
     if (!created) {
       console.debug("Entry already exists, skipping upload metadata")
       await ctx.storage.delete(storageId)
+      return { url: null, entryId }
     }
 
     return {
