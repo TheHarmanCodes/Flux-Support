@@ -1,6 +1,5 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
-
 import { cn } from "@workspace/ui/lib/utils"
 
 const buttonVariants = cva(
@@ -18,12 +17,6 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
-        transparent:
-          "bg-transparent text-primary-foreground hover:bg-transparent hover:text-primary-foreground/80",
-        tertiary:
-          "bg-gradient-to-b from-[#3FB62F] to-[#318d25] text-white hover:to-[#3FB62F]/90 hover:text-white",
-        warning:
-          "bg-gradient-to-b from-yellow-500 to-[#be8b00] text-white hover:to-[#be8b00]/90 hover:text-white",
       },
       size: {
         default:
