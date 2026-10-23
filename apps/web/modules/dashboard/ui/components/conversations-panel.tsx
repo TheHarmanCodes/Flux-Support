@@ -1,7 +1,7 @@
 "use client"
 
-import { statusFilterAtom } from "@/app/modules/atoms"
-import { filterItems } from "@/app/modules/constants"
+import { statusFilterAtom } from "@/modules/atoms"
+import { filterItems } from "@/modules/constants"
 import { getCountryFlagUrl, getCountryFromTimezone } from "@/lib/country-utils"
 import { api } from "@workspace/backend/_generated/api"
 import { ConversationStatusIcon } from "@workspace/ui/components/conversation-status-icon"
