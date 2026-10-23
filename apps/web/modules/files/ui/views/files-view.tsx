@@ -126,7 +126,7 @@ const FilesView = () => {
                   }
 
                   return files.results.map((file) => (
-                    <TableRow className="hover: bg-muted/50" key={file.id}>
+                    <TableRow className="hover:bg-muted/50" key={file.id}>
                       <TableCell className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <FileIcon />

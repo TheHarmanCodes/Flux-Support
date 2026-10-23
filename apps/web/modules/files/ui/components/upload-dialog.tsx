@@ -27,6 +27,8 @@ interface UploadDialogProps {
   onFileUploaded?: () => void
 }
 
+/**
+ * It provides a ui for uploading a file to the knowledge base. It allows users to select a file, specify a category and an optional filename, and then upload the file to the backend. The component manages the state of the uploaded files, the upload form, and the uploading process. */
 export const UploadDialog = ({
   open,
   onOpenChange,
@@ -34,6 +36,8 @@ export const UploadDialog = ({
 }: UploadDialogProps) => {
   const addFile = useAction(api.private.files.addFile)
 
+  // State to manage the uploaded files and the upload form
+  // internally uploadedFiles is an array of File objects, but we only allow one file to be uploaded at a time.
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
 
@@ -46,10 +50,15 @@ export const UploadDialog = ({
     const file = acceptedFiles[0]
 
     if (file) {
+      const previousName = uploadedFiles[0]?.name
       setUploadedFiles([file])
-      if (!uploadForm.filename) {
-        setUploadForm((prev) => ({ ...prev, filename: file.name }))
-      }
+
+      setUploadForm((prev) =>
+        // it checks if the previous filename is empty or matches the previous file's name, and if so, it updates the filename to the new file's name. Otherwise, it keeps the previous filename.
+        !prev.filename || prev.filename === previousName
+          ? { ...prev, filename: file.name } // Update filename to new file's name
+          : prev
+      )
     }
   }
 
@@ -65,18 +74,18 @@ export const UploadDialog = ({
       const filename = uploadForm.filename || blob.name
 
       await addFile({
+        // MIME type e.g., "application/pdf", "text/plain", etc.
+        mimeType: blob.type || undefined,
+        // category is a user-defined string to categorize the uploaded file, e.g., "Documentation", "Support", etc.
+        category: uploadForm.category,
         // Convert the file to an ArrayBuffer for upload
         // This is necessary because the backend expects the file data in this format
         bytes: await blob.arrayBuffer(),
         filename,
-        // MIME type e.g., "application/pdf", "text/plain", etc.
-        mimeType: blob.type || "text/plain",
-        // category is a user-defined string to categorize the uploaded file, e.g., "Documentation", "Support", etc.
-        category: uploadForm.category,
       })
 
       onFileUploaded?.()
-      handleCancle()
+      handleCancel()
     } catch (err) {
       console.error("Error uploading file:", err)
       // Todo: Add a toast notification for error feedback
@@ -85,7 +94,7 @@ export const UploadDialog = ({
     }
   }
 
-  const handleCancle = () => {
+  const handleCancel = () => {
     // when onOpenChange is called with false, it will close the dialog in the parent component
     onOpenChange(false)
     setUploadedFiles([])
@@ -163,10 +172,10 @@ export const UploadDialog = ({
         <DialogFooter>
           <Button
             disabled={isUploading}
-            onClick={handleCancle}
+            onClick={handleCancel}
             variant="outline"
           >
-            Cancle
+            Cancel
           </Button>
           <Button
             disabled={
