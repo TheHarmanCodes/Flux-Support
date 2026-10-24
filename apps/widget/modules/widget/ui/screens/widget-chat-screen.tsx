@@ -144,25 +144,27 @@ export const WidgetChatScreen = () => {
           />
           {/* toUIMessages is a helper function that transforms MessageDocs into AI SDK "UIMessage"s.
            This is a convenient data model for displaying messages. */}
-          {toUIMessages(messages.results ?? [])?.map((msg) => {
-            return (
-              <AIMessage
-                from={msg.role === "user" ? "user" : "assistant"}
-                key={msg.id}
-              >
-                <AIMessageContent>
-                  <AIResponse>{msg.text}</AIResponse>
-                </AIMessageContent>
-                {msg.role === "assistant" && (
-                  <DicebearAvatar
-                    imageUrl="/logo.svg"
-                    seed="assistant"
-                    size={32}
-                  />
-                )}
-              </AIMessage>
-            )
-          })}
+          {toUIMessages(messages.results ?? [])
+            ?.filter((msg) => Boolean(msg.text?.trim()))
+            .map((msg) => {
+              return (
+                <AIMessage
+                  from={msg.role === "user" ? "user" : "assistant"}
+                  key={msg.id}
+                >
+                  <AIMessageContent>
+                    <AIResponse>{msg.text}</AIResponse>
+                  </AIMessageContent>
+                  {msg.role === "assistant" && (
+                    <DicebearAvatar
+                      imageUrl="/logo.svg"
+                      seed="assistant"
+                      size={32}
+                    />
+                  )}
+                </AIMessage>
+              )
+            })}
         </AIConversationContent>
       </AIConversation>
       {/* TODO: Add suggestions later on */}

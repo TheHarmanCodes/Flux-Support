@@ -5,7 +5,8 @@ import { supportAgent } from "../system/ai/agent/supportAgent"
 import { paginationOptsValidator } from "convex/server"
 import { saveMessage } from "@convex-dev/agent"
 import { generateText } from "ai"
-import { groq } from "@ai-sdk/groq"
+import { OPERATOR_MESSAGE_ENHANCEMENT_PROMPT } from "../system/ai/constants"
+import { getInterpreterModel } from "../system/ai/modelRouter"
 
 export const create = mutation({
   args: {
@@ -154,12 +155,8 @@ export const enhanceResponse = action({
     }
 
     const response = await generateText({
-      model: groq("openai/gpt-oss-20b"),
-      system:
-        "You refine customer support chat drafts into professional, clear, and helpful messages with balanced length.\n\n" +
-        "- Preserve Intent: Retain all facts, steps, and technical details. Do not add or remove information.\n" +
-        "- Tone & Quality: Make the message polite, professional, and empathetic. Fix grammar and typos.\n" +
-        "- Output Constraint: Output ONLY the enhanced message. No explanations, quotes, or introductory text.",
+      model: getInterpreterModel(),
+      system: OPERATOR_MESSAGE_ENHANCEMENT_PROMPT,
       prompt: args.prompt,
     })
     return response.text
