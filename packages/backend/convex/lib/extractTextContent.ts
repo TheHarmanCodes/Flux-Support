@@ -1,13 +1,13 @@
-import { google } from "@ai-sdk/google"
 import { Id } from "../_generated/dataModel"
 import { StorageActionWriter } from "convex/server"
 import { assert } from "convex-helpers"
 import { generateText } from "ai"
+import { googleGenerativeAiProvider } from "../system/ai/modelRouter"
 
 const AI_MODELS = {
-  image: google.chat("gemini-3.5-flash-lite"),
-  pdf: google.chat("gemini-3.1-flash-lite"),
-  html: google.chat("gemini-3.1-flash-lite"),
+  image: googleGenerativeAiProvider.chat("gemini-3.5-flash-lite"),
+  pdf: googleGenerativeAiProvider.chat("gemini-3.1-flash-lite"),
+  html: googleGenerativeAiProvider.chat("gemini-3.1-flash-lite"),
 } as const
 
 const SUPPORTED_IMAGE_TYPES = [

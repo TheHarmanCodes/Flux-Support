@@ -5,21 +5,19 @@ import { supportAgent } from "../system/ai/agent/supportAgent"
 import { paginationOptsValidator } from "convex/server"
 import { escalateConversation } from "../system/ai/tools/escalateConversation"
 import { resolveConversation } from "../system/ai/tools/resolveConveration"
-import { saveMessage } from "@convex-dev/agent"
-/*
- * action are special type of functions in convex used to query third party services
- * https://docs.convex.dev/functions/internal-functions
- */
+import { saveMessage, stepCountIs } from "@convex-dev/agent"
+import { search } from "../system/ai/tools/search"
+import {
+  MAIN_AGENT_ROUTING_TIERS,
+  classifyError,
+} from "../system/ai/modelRouter"
+
 export const create = action({
   args: {
     prompt: v.string(),
     threadId: v.string(),
     contactSessionId: v.id("contactSession"),
   },
-  /*
-   * This function will be used by the widget user right so the widget user will attempt
-   * to create a new message so we have to verify their contact session.
-   */
   handler: async (ctx, args) => {
     const contactSession = await ctx.runQuery(
       internal.system.contactSession.getOne,
@@ -35,7 +33,6 @@ export const create = action({
       })
     }
 
-    // getting the conversations
     const conversation = await ctx.runQuery(
       internal.system.conversations.getByThreadId,
       {
@@ -55,27 +52,119 @@ export const create = action({
       })
     }
 
-    // TODO: Implement subscription check
-
     const shouldTriggerAgent = conversation.status === "unresolved"
-    // if the conversation is unresolved then we will trigger the agent to generate a response
+
     if (shouldTriggerAgent) {
-      await supportAgent.generateText(
+      const { messageId: promptMessageId } = await saveMessage(
         ctx,
-        {
-          // using this threadId the Ai agent will know the previous conversation history
-          threadId: args.threadId,
-        },
-        {
-          prompt: args.prompt,
-          tools: {
-            escalateConversation,
-            resolveConversation,
-          },
-        }
+        components.agent,
+        { threadId: args.threadId, prompt: args.prompt }
       )
+      let lastError: unknown = null
+      let executedSuccessfully = false
+
+      for (let i = 0; i < MAIN_AGENT_ROUTING_TIERS.length; i++) {
+        const tier = MAIN_AGENT_ROUTING_TIERS[i]
+        if (!tier) continue
+
+        // Check if previous attempt already caused state mutations (e.g. escalated or resolved)
+        // If state changed, do NOT re-run tools or retry from scratch to avoid duplicate side effects.
+        if (i > 0) {
+          const currentConv = await ctx.runQuery(
+            internal.system.conversations.getByThreadId,
+            { threadId: args.threadId }
+          )
+          if (currentConv && currentConv.status !== "unresolved") {
+            console.log(
+              "Conversation state changed during previous attempt; aborting further retries to avoid duplicating side effects.",
+              {
+                currentStatus: currentConv.status,
+              }
+            )
+            return
+          }
+        }
+
+        try {
+          const result = await tier.agent.generateText(
+            ctx,
+            {
+              threadId: args.threadId,
+            },
+            {
+              promptMessageId,
+              tools: {
+                escalateConversationTool: escalateConversation,
+                resolveConversationTool: resolveConversation,
+                searchTool: search,
+              },
+              stopWhen: stepCountIs(3),
+            }
+          )
+
+          // Structured diagnostics logging
+          const usageAny = result.usage as any
+          console.log("Agent generation succeeded:", {
+            tierId: tier.id,
+            provider: tier.provider,
+            model: tier.modelName,
+            fallbackOccurred: i > 0,
+            attemptNumber: i + 1,
+            steps: result.steps?.length ?? 0,
+            usage: usageAny
+              ? {
+                  inputTokens: usageAny.inputTokens ?? usageAny.promptTokens,
+                  outputTokens:
+                    usageAny.outputTokens ?? usageAny.completionTokens,
+                }
+              : undefined,
+          })
+
+          executedSuccessfully = true
+          break
+        } catch (error) {
+          lastError = error
+          const classification = classifyError(error)
+
+          console.error(
+            `Agent generation failed on tier ${tier.id} (${tier.modelName}):`,
+            {
+              reason: classification.reason,
+              statusCode: classification.statusCode,
+              isRetryable: classification.isRetryable,
+              attempt: i + 1,
+              totalTiers: MAIN_AGENT_ROUTING_TIERS.length,
+            }
+          )
+
+          // If the error is non-retryable (e.g. invalid auth, bad request), do not cycle models indiscriminately
+          if (!classification.isRetryable) {
+            console.error(
+              "Non-retryable error encountered; stopping fallback routing."
+            )
+            break
+          }
+
+          // If retryable and there are more tiers, log fallback event and proceed to next tier
+          if (i + 1 < MAIN_AGENT_ROUTING_TIERS.length) {
+            const nextTier = MAIN_AGENT_ROUTING_TIERS[i + 1]
+            if (nextTier) {
+              console.log(
+                `Falling back from ${tier.id} to ${nextTier.id} due to: ${classification.reason}`
+              )
+            }
+          }
+        }
+      }
+
+      if (!executedSuccessfully) {
+        // Fallback exhausted or non-retryable error occurred
+        console.error(
+          "All agent fallback tiers failed or terminated with error."
+        )
+        throw lastError
+      }
     } else {
-      // otherwise we will just save the message in the database and the agent will not be triggered
       await saveMessage(ctx, components.agent, {
         threadId: args.threadId,
         prompt: args.prompt,
@@ -100,10 +189,6 @@ export const getMany = query({
       })
     }
 
-    /*
-     * Paginated queries are queries that return a list of results in incremental pages.
-     * Docx: https://docs.convex.dev/database/pagination
-     */
     const paginated = await supportAgent.listMessages(ctx, {
       threadId: args.threadId,
       paginationOpts: args.paginationOpts,

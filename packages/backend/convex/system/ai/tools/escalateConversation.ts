@@ -1,10 +1,9 @@
 import { createTool } from "@convex-dev/agent"
 import { internal } from "../../../_generated/api"
 import { z } from "zod"
-import { supportAgent } from "../agent/supportAgent"
 
 export const escalateConversation: any = createTool({
-  description: "Escalate a conversation",
+  description: "Escalate a conversation to a human operator",
   inputSchema: z.object({}),
   execute: async (ctx) => {
     if (!ctx.threadId) {
@@ -15,14 +14,6 @@ export const escalateConversation: any = createTool({
       threadId: ctx.threadId,
     })
 
-    await supportAgent.saveMessage(ctx, {
-      threadId: ctx.threadId,
-      message: {
-        role: "assistant",
-        content: "Conversation escalated to a human operator.",
-      },
-    })
-
-    return "Conversation escalated"
+    return "Conversation escalated to a human operator."
   },
 })
