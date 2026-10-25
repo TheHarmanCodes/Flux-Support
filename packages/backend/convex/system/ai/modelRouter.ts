@@ -117,92 +117,94 @@ export function classifyError(error: unknown): ErrorClassification {
   }
 
   const err = error as any
-  const status =
-    err.status ||
-    err.statusCode ||
-    err.response?.status ||
-    err.cause?.status ||
+  const rawStatus =
+    err.status ??
+    err.statusCode ??
+    err.lastError?.statusCode ??
+    err.lastError?.status ??
+    err.response?.status ??
+    err.response?.statusCode ??
+    err.cause?.status ??
     err.cause?.statusCode
 
+  const status =
+    typeof rawStatus === "number"
+      ? rawStatus
+      : typeof rawStatus === "string" && !isNaN(Number(rawStatus))
+        ? Number(rawStatus)
+        : undefined
+
+  // Inspect numeric status codes first when available
+  if (typeof status === "number") {
+    if (status === 429) {
+      return {
+        isRetryable: true,
+        statusCode: 429,
+        reason: "Rate limit / Quota exceeded (429)",
+      }
+    }
+
+    if (status === 408) {
+      return {
+        isRetryable: true,
+        statusCode: 408,
+        reason: "Request timeout (408)",
+      }
+    }
+
+    if (status === 529) {
+      return {
+        isRetryable: true,
+        statusCode: 529,
+        reason: "Site overloaded / Server error (529)",
+      }
+    }
+
+    if (status >= 500 && status < 600) {
+      return {
+        isRetryable: true,
+        statusCode: status,
+        reason: `Server error (${status})`,
+      }
+    }
+
+    if (
+      status === 400 ||
+      status === 401 ||
+      status === 403 ||
+      status === 404 ||
+      status === 413
+    ) {
+      return {
+        isRetryable: false,
+        statusCode: status,
+        reason: `Client or authentication error (${status})`,
+      }
+    }
+
+    return {
+      isRetryable: false,
+      statusCode: status,
+      reason: `HTTP error (${status})`,
+    }
+  }
+
+  // Only when no numeric status is available, use message matching for network error codes
   const message = String(err.message || err.toString() || "")
   const lowerMessage = message.toLowerCase()
 
-  // 429 Rate limits - definitely retryable across fallback models
   if (
-    status === 429 ||
-    lowerMessage.includes("rate limit") ||
-    lowerMessage.includes("429") ||
-    lowerMessage.includes("too many requests") ||
-    lowerMessage.includes("quota exceeded")
-  ) {
-    return {
-      isRetryable: true,
-      statusCode: 429,
-      reason: "Rate limit / Quota exceeded",
-    }
-  }
-
-  // 5xx Transient server / provider errors
-  if (typeof status === "number" && status >= 500 && status < 600) {
-    return {
-      isRetryable: true,
-      statusCode: status,
-      reason: `Server error (${status})`,
-    }
-  }
-
-  if (
-    lowerMessage.includes("503") ||
-    lowerMessage.includes("500") ||
-    lowerMessage.includes("502") ||
-    lowerMessage.includes("504") ||
-    lowerMessage.includes("service unavailable") ||
-    lowerMessage.includes("bad gateway") ||
-    lowerMessage.includes("gateway timeout") ||
-    lowerMessage.includes("internal server error")
-  ) {
-    return {
-      isRetryable: true,
-      statusCode: status || 500,
-      reason: "Transient provider server error",
-    }
-  }
-
-  // Network / timeout errors
-  if (
-    lowerMessage.includes("timeout") ||
     lowerMessage.includes("econnreset") ||
-    lowerMessage.includes("econnrefused") ||
     lowerMessage.includes("etimedout") ||
+    lowerMessage.includes("econnrefused") ||
     lowerMessage.includes("fetch failed") ||
     lowerMessage.includes("network error")
   ) {
     return { isRetryable: true, reason: "Network timeout / connection error" }
   }
 
-  // Non-retryable: 401/403 Auth, 400 Bad Request, 404 Not Found, Invalid API Key
-  if (
-    status === 401 ||
-    status === 403 ||
-    status === 400 ||
-    status === 404 ||
-    lowerMessage.includes("invalid api key") ||
-    lowerMessage.includes("unauthorized") ||
-    lowerMessage.includes("forbidden") ||
-    lowerMessage.includes("bad request") ||
-    lowerMessage.includes("invalid request")
-  ) {
-    return {
-      isRetryable: false,
-      statusCode: status,
-      reason: `Client or authentication error (${status || "non-retryable"})`,
-    }
-  }
-
-  // Fallback: check if error is generic and potentially transient
   return {
     isRetryable: false,
-    statusCode: status,
-    reason: message.slice(0, 100),
+    reason: message.slice(0, 100) || "Unknown error",
   }
 }

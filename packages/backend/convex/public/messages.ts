@@ -55,6 +55,11 @@ export const create = action({
     const shouldTriggerAgent = conversation.status === "unresolved"
 
     if (shouldTriggerAgent) {
+      const { messageId: promptMessageId } = await saveMessage(
+        ctx,
+        components.agent,
+        { threadId: args.threadId, prompt: args.prompt }
+      )
       let lastError: unknown = null
       let executedSuccessfully = false
 
@@ -70,9 +75,12 @@ export const create = action({
             { threadId: args.threadId }
           )
           if (currentConv && currentConv.status !== "unresolved") {
-            console.log("Conversation state changed during previous attempt; aborting further retries to avoid duplicating side effects.", {
-              currentStatus: currentConv.status,
-            })
+            console.log(
+              "Conversation state changed during previous attempt; aborting further retries to avoid duplicating side effects.",
+              {
+                currentStatus: currentConv.status,
+              }
+            )
             return
           }
         }
@@ -84,7 +92,7 @@ export const create = action({
               threadId: args.threadId,
             },
             {
-              prompt: args.prompt,
+              promptMessageId,
               tools: {
                 escalateConversationTool: escalateConversation,
                 resolveConversationTool: resolveConversation,
@@ -106,7 +114,8 @@ export const create = action({
             usage: usageAny
               ? {
                   inputTokens: usageAny.inputTokens ?? usageAny.promptTokens,
-                  outputTokens: usageAny.outputTokens ?? usageAny.completionTokens,
+                  outputTokens:
+                    usageAny.outputTokens ?? usageAny.completionTokens,
                 }
               : undefined,
           })
@@ -117,17 +126,22 @@ export const create = action({
           lastError = error
           const classification = classifyError(error)
 
-          console.error(`Agent generation failed on tier ${tier.id} (${tier.modelName}):`, {
-            reason: classification.reason,
-            statusCode: classification.statusCode,
-            isRetryable: classification.isRetryable,
-            attempt: i + 1,
-            totalTiers: MAIN_AGENT_ROUTING_TIERS.length,
-          })
+          console.error(
+            `Agent generation failed on tier ${tier.id} (${tier.modelName}):`,
+            {
+              reason: classification.reason,
+              statusCode: classification.statusCode,
+              isRetryable: classification.isRetryable,
+              attempt: i + 1,
+              totalTiers: MAIN_AGENT_ROUTING_TIERS.length,
+            }
+          )
 
           // If the error is non-retryable (e.g. invalid auth, bad request), do not cycle models indiscriminately
           if (!classification.isRetryable) {
-            console.error("Non-retryable error encountered; stopping fallback routing.")
+            console.error(
+              "Non-retryable error encountered; stopping fallback routing."
+            )
             break
           }
 
@@ -135,7 +149,9 @@ export const create = action({
           if (i + 1 < MAIN_AGENT_ROUTING_TIERS.length) {
             const nextTier = MAIN_AGENT_ROUTING_TIERS[i + 1]
             if (nextTier) {
-              console.log(`Falling back from ${tier.id} to ${nextTier.id} due to: ${classification.reason}`)
+              console.log(
+                `Falling back from ${tier.id} to ${nextTier.id} due to: ${classification.reason}`
+              )
             }
           }
         }
@@ -143,7 +159,9 @@ export const create = action({
 
       if (!executedSuccessfully) {
         // Fallback exhausted or non-retryable error occurred
-        console.error("All agent fallback tiers failed or terminated with error.")
+        console.error(
+          "All agent fallback tiers failed or terminated with error."
+        )
         throw lastError
       }
     } else {
