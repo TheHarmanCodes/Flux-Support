@@ -7,6 +7,7 @@ import { toUIMessages, useThreadMessages } from "@convex-dev/agent/react"
 import { z } from "zod"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
 import { Button } from "@workspace/ui/components/button"
 import { MoreHorizontalIcon, Wand2Icon } from "lucide-react"
 import {
@@ -80,7 +81,7 @@ export const ConversationIdView = ({
       form.setValue("message", response)
     } catch (err) {
       console.error(err)
-      //TODO : add toast later on
+      toast.error("Failed to enhance response")
     } finally {
       setIsEnhancing(false)
     }
@@ -98,7 +99,7 @@ export const ConversationIdView = ({
       form.reset()
     } catch (error) {
       console.error(error)
-      // TODO: Add a toast
+      toast.error("Failed to send message")
     }
   }
 
@@ -130,9 +131,10 @@ export const ConversationIdView = ({
         conversationId,
         status: newStatus,
       })
+      toast.success("Conversation status updated")
     } catch (err) {
       console.error(err)
-      // TODO: add a toast later on
+      toast.error("Failed to update conversation status")
     } finally {
       setIsUpdatingStatus(false)
     }

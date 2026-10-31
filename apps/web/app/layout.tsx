@@ -3,6 +3,7 @@ import "@workspace/ui/globals.css"
 import { ClerkProvider } from "@clerk/nextjs"
 import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
+import { Toaster } from "@workspace/ui/components/sonner"
 import { cn } from "@workspace/ui/lib/utils"
 import React from "react"
 
@@ -32,7 +33,10 @@ export default function RootLayout({
       <body>
         <ClerkProvider>
           <ThemeProvider>
-            <TooltipProvider> {children} </TooltipProvider>
+            <TooltipProvider>
+              {children}
+              <Toaster />
+            </TooltipProvider>
           </ThemeProvider>
         </ClerkProvider>
       </body>
