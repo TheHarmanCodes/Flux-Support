@@ -2,6 +2,7 @@
 
 import { useAction } from "convex/react"
 import { useState } from "react"
+import { toast } from "sonner"
 
 import { Label } from "@workspace/ui/components/label"
 import { Button } from "@workspace/ui/components/button"
@@ -84,11 +85,12 @@ export const UploadDialog = ({
         filename,
       })
 
+      toast.success("File uploaded successfully")
       onFileUploaded?.()
       handleCancel()
     } catch (err) {
       console.error("Error uploading file:", err)
-      // Todo: Add a toast notification for error feedback
+      toast.error("Failed to upload file")
     } finally {
       setIsUploading(false)
     }

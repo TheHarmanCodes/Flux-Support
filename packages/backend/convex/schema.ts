@@ -2,6 +2,14 @@ import { defineSchema, defineTable } from "convex/server"
 import { v } from "convex/values"
 
 export default defineSchema({
+  plugins: defineTable({
+    OrganizationId: v.string(),
+    service: v.union(v.literal("vapi")), // currently only support for vapi
+    secretName: v.string(),
+  })
+    .index("by_organization_id", ["OrganizationId"])
+    .index("by_organization_id_and_service", ["OrganizationId", "service"]),
+
   // Stores support conversations linked to an organization and a contact session
   conversations: defineTable({
     threadId: v.string(), // Identifier for the external messaging thread (e.g., chat engine / AI thread)

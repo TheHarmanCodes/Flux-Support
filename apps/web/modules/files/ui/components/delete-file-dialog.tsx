@@ -3,8 +3,7 @@
 import { api } from "@workspace/backend/_generated/api"
 import { PublicFile } from "@workspace/backend/private/files"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Dialog,
+import { Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -13,6 +12,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { useMutation } from "convex/react"
 import { useState } from "react"
+import { toast } from "sonner"
 
 interface DeleteFileDialogProps {
   open: boolean
@@ -37,11 +37,12 @@ export const DeleteFileDialog = ({
     setIsDeleting(true)
     try {
       await deletefile({ entryId: file.id })
+      toast.success("File deleted successfully")
       onDelete?.()
       onOpenChange(false)
     } catch (err) {
       console.error("Error deleting file:", err)
-      // Todo: Add a toast notification here to inform the user of the error
+      toast.error("Failed to delete file")
     } finally {
       setIsDeleting(false)
     }
