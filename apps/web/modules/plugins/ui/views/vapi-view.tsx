@@ -9,7 +9,8 @@ import {
   EyeIcon,
   EyeOffIcon,
 } from "lucide-react"
-import { useMutation, useQuery } from "convex/react"
+import { useAction, useQuery } from "convex/react"
+import { ConvexError } from "convex/values"
 import { api } from "@workspace/backend/_generated/api"
 import z from "zod"
 import { Controller, useForm } from "react-hook-form"
@@ -67,7 +68,9 @@ const VapiPluginForm = ({
   open: boolean
   setOpen: (open: boolean) => void
 }) => {
-  const upsertSecret = useMutation(api.private.secrets.upsert)
+  // Use action instead of mutation so the external AWS Secrets Manager write
+  // and Convex database update are awaited before returning to the UI.
+  const upsertSecret = useAction(api.private.secrets.upsert)
   const [showPublicKey, setShowPublicKey] = useState(false)
   const [showPrivateKey, setShowPrivateKey] = useState(false)
 
@@ -79,6 +82,15 @@ const VapiPluginForm = ({
     },
   })
 
+  /**
+   * Objective: Submit credentials, keeping the dialog open and disabling buttons
+   * until AWS Secrets Manager and Convex DB operations complete.
+   *
+   * Flow:
+   * - During execution: isSubmitting is true -> button shows "Connecting...", prevents double submit.
+   * - On failure (AWS or DB): dialog stays open, form inputs remain preserved, error toast shown.
+   * - On success: dialog closes, form resets, success toast shown.
+   */
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await upsertSecret({
@@ -88,11 +100,24 @@ const VapiPluginForm = ({
           privateApiKey: values.privateApiKey,
         },
       })
+      // Only close and reset when the write has truly completed successfully
       setOpen(false)
-      toast.success("Vapi secret created")
+      form.reset()
+      toast.success("Vapi plugin enabled")
     } catch (err) {
-      console.error(err)
-      toast.error("Something went wrong")
+      console.error("Failed to enable Vapi plugin:", err)
+      // Keep dialog open and fields intact so user can fix or retry without re-typing.
+      let message = "Failed to store secret credentials"
+      if (
+        err instanceof ConvexError &&
+        typeof err.data === "object" &&
+        err.data !== null
+      ) {
+        message = (err.data as { message?: string }).message || message
+      } else if (err instanceof Error && err.message) {
+        message = err.message
+      }
+      toast.error(message)
     }
   }
 
