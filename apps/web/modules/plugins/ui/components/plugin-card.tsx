@@ -43,11 +43,11 @@ const PluginCard = ({
 
         <div className="flex flex-col items-center">
           <Image
-            className="rounded object-contain"
             alt="Platform"
-            src="/logo.svg"
+            className="rounded object-contain"
             height={40}
             width={40}
+            src="/logo.svg"
           />
         </div>
       </div>

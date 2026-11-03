@@ -9,7 +9,7 @@ import {
   EyeIcon,
   EyeOffIcon,
 } from "lucide-react"
-import { useAction, useQuery } from "convex/react"
+import { useAction, useMutation, useQuery } from "convex/react"
 import { ConvexError } from "convex/values"
 import { api } from "@workspace/backend/_generated/api"
 import z from "zod"
@@ -32,6 +32,7 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
+import { VapiConnectedView } from "../components/vapi-connected-view"
 
 const vapiFeatures: Feature[] = [
   {
@@ -125,7 +126,7 @@ const VapiPluginForm = ({
     <Dialog onOpenChange={setOpen} open={open}>
       <DialogContent className="min-w-lg">
         <DialogHeader>
-          <DialogTitle>Enable Vapi</DialogTitle>
+          <DialogTitle className="font-bold">Enable Vapi</DialogTitle>
         </DialogHeader>
         <DialogDescription>
           Your API keys are safely encrypted and stored using AWS Secrets
@@ -241,19 +242,65 @@ const VapiPluginForm = ({
   )
 }
 
+const VapiPluginRemoveForm = ({
+  open,
+  setOpen,
+}: {
+  open: boolean
+  setOpen: (open: boolean) => void
+}) => {
+  const removePlugin = useMutation(api.private.plugins.remove)
+
+  const onSubmit = async () => {
+    try {
+      await removePlugin({
+        service: "vapi",
+      })
+      setOpen(false)
+      toast.success("Vapi plugin removed")
+    } catch (err) {
+      console.error("Failed to remove Vapi plugin:", err)
+      toast.error("Something went wrong.\nFailed to remove Vapi Plugin")
+    }
+  }
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <DialogContent className="min-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-bold">Disconnect Vapi</DialogTitle>
+        </DialogHeader>
+        <DialogDescription>
+          Are you sure you want to disconnect the Vapi plugin?
+        </DialogDescription>
+        <DialogFooter>
+          <Button onClick={onSubmit} variant="destructive">
+            Disconnect
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export const VapiView = () => {
   const vapiPlugin = useQuery(api.private.plugins.getOne, { service: "vapi" })
 
   const [connectOpen, setConnectOpen] = useState(false)
   const [removeOpen, setRemoveOpen] = useState(false)
 
-  const handleSubmit = () => {
-    setConnectOpen(true)
+  const toggleConnection = () => {
+    if (vapiPlugin) {
+      setRemoveOpen(true)
+    } else {
+      setConnectOpen(true)
+    }
   }
 
   return (
     <>
       <VapiPluginForm open={connectOpen} setOpen={setConnectOpen} />
+      <VapiPluginRemoveForm open={removeOpen} setOpen={setRemoveOpen} />
       <div className="flex min-h-screen flex-col bg-muted p-8">
         <div className="mx-auto w-full max-w-3xl">
           <div className="space-y-2">
@@ -264,13 +311,17 @@ export const VapiView = () => {
           </div>
 
           <div className="mt-8">
-            <PluginCard
-              serviceImage="/vapi.svg"
-              serviceName="Vapi"
-              features={vapiFeatures}
-              isDisabled={vapiPlugin === undefined}
-              onSubmit={handleSubmit}
-            />
+            {vapiPlugin ? (
+              <VapiConnectedView onDisconnect={toggleConnection} />
+            ) : (
+              <PluginCard
+                serviceImage="/vapi.svg"
+                serviceName="Vapi"
+                features={vapiFeatures}
+                isDisabled={vapiPlugin === undefined}
+                onSubmit={toggleConnection}
+              />
+            )}
           </div>
         </div>
       </div>

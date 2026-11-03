@@ -214,6 +214,9 @@ importers:
       '@convex-dev/rag':
         specifier: ^0.7.8
         version: 0.7.8(ai@7.0.142(zod@3.25.76))(convex-helpers@0.1.128(@standard-schema/spec@1.1.0)(convex@1.46.0(@clerk/react@6.17.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4))(hono@4.13.13)(react@19.2.4)(typescript@5.9.3)(zod@3.25.76))(convex@1.46.0(@clerk/react@6.17.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4))(react@19.2.4)
+      '@vapi-ai/server-sdk':
+        specifier: ^3.0.0
+        version: 3.0.0
       ai:
         specifier: ^7.0.142
         version: 7.0.142(zod@3.25.76)
@@ -2370,6 +2373,10 @@ packages:
 
   '@ungap/structured-clone@1.4.0':
     resolution: {integrity: sha512-1mEZtMKPM09vDmQt5y7YvmN2+DFTP7Tg0EWXdic8/C6VRnpb33e4ghisCIE3WZjsE2N8mf+QV1Zqh7ZFYLWInQ==}
+
+  '@vapi-ai/server-sdk@3.0.0':
+    resolution: {integrity: sha512-BE7HXh+3KbCWHcxtjxbw9TqtegtKMlJNZRM/C+OWBLz2bAjP0nXzthk0+Oy058nz2Eo1bhKid/Fc25KCHZBv7w==}
+    engines: {node: '>=18.0.0'}
 
   '@vapi-ai/web@2.7.1':
     resolution: {integrity: sha512-074wXF2NdljXWv6rw0VQyIamMS8u5qsBejJBOLrcd9mT9z9xbQbd8Zu5CKe2UXdsxYpCzDYopsISE2EnwvaKSA==}
@@ -6967,6 +6974,8 @@ snapshots:
       eslint-visitor-keys: 5.0.1
 
   '@ungap/structured-clone@1.4.0': {}
+
+  '@vapi-ai/server-sdk@3.0.0': {}
 
   '@vapi-ai/web@2.7.1':
     dependencies:
