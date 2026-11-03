@@ -16,9 +16,6 @@ export const upsert = internalMutation({
       .unique()
 
     if (existingPlugin) {
-      if (existingPlugin.OrganizationId !== args.organizationId) {
-        throw new Error("Cannot change organization ID for existing plugin")
-      }
       await ctx.db.patch(existingPlugin._id, {
         service: args.service,
         secretName: args.secretName,
