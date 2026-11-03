@@ -18,7 +18,7 @@ import {
 } from "@workspace/ui/components/tooltip"
 
 const VapiAssistantsTab = () => {
-  const { data: assistants, isLoading } = useVapiAssistant()
+  const { data: assistants, isLoading, error } = useVapiAssistant()
 
   return (
     <div className="border-t bg-background">
@@ -32,6 +32,18 @@ const VapiAssistantsTab = () => {
         </TableHeader>
         <TableBody>
           {(() => {
+            if (error) {
+              return (
+                <TableRow>
+                  <TableCell
+                    colSpan={3}
+                    className="px-6 py-8 text-center text-destructive"
+                  >
+                    Failed to load assistants
+                  </TableCell>
+                </TableRow>
+              )
+            }
             if (isLoading) {
               return (
                 <TableRow>
@@ -52,7 +64,7 @@ const VapiAssistantsTab = () => {
                     colSpan={3}
                     className="px-6 py-8 text-center text-muted-foreground"
                   >
-                    No phone numbers configured
+                    No assistant numbers configured
                   </TableCell>
                 </TableRow>
               )

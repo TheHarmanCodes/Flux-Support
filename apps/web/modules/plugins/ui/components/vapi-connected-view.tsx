@@ -42,7 +42,7 @@ export const VapiConnectedView = ({ onDisconnect }: VapiConnectedViewProps) => {
               <div>
                 <CardTitle>Vapi Integration</CardTitle>
                 <CardDescription>
-                  Mange your phone numbers and AI assistants
+                  Manage your phone numbers and AI assistants
                 </CardDescription>
               </div>
             </div>

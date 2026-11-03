@@ -35,6 +35,7 @@ export const getOne = query({
 export const remove = mutation({
   args: {
     service: v.union(v.literal("vapi")),
+    pluginId: v.id("plugins"),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
@@ -54,14 +55,18 @@ export const remove = mutation({
       })
     }
 
-    const existingPlugin = await ctx.db
-      .query("plugins")
-      .withIndex("by_organization_id_and_service", (q) =>
-        q.eq("OrganizationId", orgId).eq("service", args.service)
-      )
-      .unique()
-
-    if (!existingPlugin) {
+    // const existingPlugin = await ctx.db
+    //   .query("plugins")
+    //   .withIndex("by_organization_id_and_service", (q) =>
+    //     q.eq("OrganizationId", orgId).eq("service", args.service)
+    //   )
+    //   .unique()
+    const existingPlugin = await ctx.db.get(args.pluginId)
+    if (
+      !existingPlugin ||
+      existingPlugin.OrganizationId !== orgId ||
+      existingPlugin.service !== args.service
+    ) {
       throw new ConvexError({
         code: "NOT_FOUND",
         message: "Plugin not found",

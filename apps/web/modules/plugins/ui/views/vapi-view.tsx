@@ -33,6 +33,7 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
 import { VapiConnectedView } from "../components/vapi-connected-view"
+import { Id } from "@workspace/backend/_generated/dataModel"
 
 const vapiFeatures: Feature[] = [
   {
@@ -245,22 +246,31 @@ const VapiPluginForm = ({
 const VapiPluginRemoveForm = ({
   open,
   setOpen,
+  pluginId,
 }: {
   open: boolean
   setOpen: (open: boolean) => void
+  pluginId: Id<"plugins"> | null
 }) => {
   const removePlugin = useMutation(api.private.plugins.remove)
+  const [isRemoving, setIsRemoving] = useState(false)
 
   const onSubmit = async () => {
+    if (isRemoving) return
+    setIsRemoving(true)
+    if (!pluginId) return
     try {
       await removePlugin({
         service: "vapi",
+        pluginId,
       })
       setOpen(false)
       toast.success("Vapi plugin removed")
     } catch (err) {
       console.error("Failed to remove Vapi plugin:", err)
       toast.error("Something went wrong.\nFailed to remove Vapi Plugin")
+    } finally {
+      setIsRemoving(false)
     }
   }
 
@@ -274,8 +284,12 @@ const VapiPluginRemoveForm = ({
           Are you sure you want to disconnect the Vapi plugin?
         </DialogDescription>
         <DialogFooter>
-          <Button onClick={onSubmit} variant="destructive">
-            Disconnect
+          <Button
+            disabled={isRemoving}
+            onClick={onSubmit}
+            variant="destructive"
+          >
+            {isRemoving ? "Disconnecting..." : "Disconnect"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -288,9 +302,13 @@ export const VapiView = () => {
 
   const [connectOpen, setConnectOpen] = useState(false)
   const [removeOpen, setRemoveOpen] = useState(false)
+  const [removePluginId, setRemovePluginId] = useState<Id<"plugins"> | null>(
+    null
+  )
 
   const toggleConnection = () => {
     if (vapiPlugin) {
+      setRemovePluginId(vapiPlugin._id)
       setRemoveOpen(true)
     } else {
       setConnectOpen(true)
@@ -300,7 +318,12 @@ export const VapiView = () => {
   return (
     <>
       <VapiPluginForm open={connectOpen} setOpen={setConnectOpen} />
-      <VapiPluginRemoveForm open={removeOpen} setOpen={setRemoveOpen} />
+      {/* <VapiPluginRemoveForm open={removeOpen} setOpen={setRemoveOpen} /> */}
+      <VapiPluginRemoveForm
+        open={removeOpen}
+        setOpen={setRemoveOpen}
+        pluginId={removePluginId}
+      />
       <div className="flex min-h-screen flex-col bg-muted p-8">
         <div className="mx-auto w-full max-w-3xl">
           <div className="space-y-2">
