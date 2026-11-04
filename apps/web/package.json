@@ -20,7 +20,7 @@
     "@workspace/backend": "workspace:*",
     "@workspace/ui": "workspace:*",
     "cn": "^0.5.1",
-    "convex": "^1.46.0",
+    "convex": "^1.49.0",
     "countries-and-timezones": "^3.10.0",
     "date-fns": "^4.4.0",
     "jotai": "^2.20.3",
