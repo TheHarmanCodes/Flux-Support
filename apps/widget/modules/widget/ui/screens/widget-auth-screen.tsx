@@ -106,7 +106,7 @@ export const WidgetAuthScreen = () => {
                   id="widget-auth-name"
                   aria-invalid={fieldState.invalid}
                   className="h-10 bg-background"
-                  placeholder="e.g. John Doe"
+                  placeholder="e.g. Harman Singh"
                   type="text"
                 />
                 {fieldState.invalid && (
@@ -126,7 +126,7 @@ export const WidgetAuthScreen = () => {
                   id="widget-auth-email"
                   aria-invalid={fieldState.invalid}
                   className="h-10 bg-background"
-                  placeholder="e.g. john.doe@example.com"
+                  placeholder="e.g. hello@example.com"
                   type="email"
                 />
                 {fieldState.invalid && (
