@@ -28,6 +28,13 @@ export const create = mutation({
       })
     }
 
+    const widgetSettings = await ctx.db
+      .query("widgetSettings")
+      .withIndex("by_organization_id", (q) =>
+        q.eq("organizationId", session.organizationId)
+      )
+      .unique()
+
     // convex-docx https://docs.convex.dev/agents/threads
     const { threadId } = await supportAgent.createThread(ctx, {
       userId: session.organizationId,
@@ -37,8 +44,8 @@ export const create = mutation({
       threadId,
       message: {
         role: "assistant",
-        // TODO: later modify the widget setting to modify initial message
-        content: "Hello, How can I help you today?",
+        content:
+          widgetSettings?.greetMessage || "Hello, How can I help you today?",
       },
     })
 

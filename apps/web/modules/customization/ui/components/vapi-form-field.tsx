@@ -43,12 +43,11 @@ const VapiFormFields = ({ form }: VapiFormFieldsProps) => {
             </FieldLabel>
             <Select
               id="select-voice-assistant"
-              aria-invalid={fieldState.invalid}
               value={field.value}
               onValueChange={field.onChange}
               disabled={assistantsLoading || disabled}
             >
-              <SelectTrigger>
+              <SelectTrigger aria-invalid={fieldState.invalid}>
                 <SelectValue
                   placeholder={
                     assistantsLoading
@@ -85,12 +84,11 @@ const VapiFormFields = ({ form }: VapiFormFieldsProps) => {
             </FieldLabel>
             <Select
               id="select-phone-number"
-              aria-invalid={fieldState.invalid}
               value={field.value}
               onValueChange={field.onChange}
               disabled={phoneNumberLoading || disabled}
             >
-              <SelectTrigger>
+              <SelectTrigger aria-invalid={fieldState.invalid}>
                 <SelectValue
                   placeholder={
                     phoneNumberLoading
