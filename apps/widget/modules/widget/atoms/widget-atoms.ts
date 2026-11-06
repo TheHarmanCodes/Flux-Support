@@ -3,7 +3,7 @@ import { WidgetScreen } from "@/modules/widget/types"
 import { atomWithStorage } from "jotai/utils"
 import { atomFamily } from "jotai-family"
 import { CONTACT_SESSION_KEY } from "../constant"
-import { Id } from "@workspace/backend/_generated/dataModel"
+import { Doc, Id } from "@workspace/backend/_generated/dataModel"
 
 /**
  * The widget's in-memory route. Updating this atom switches the visible screen
@@ -24,3 +24,5 @@ export const loadingMessageAtom = atom<string | null>(null)
 
 // Holds the active conversation ID for the current chat session
 export const conversationIdAtom = atom<Id<"conversations"> | null>(null)
+
+export const widgetSettingAtom = atom<Doc<"widgetSettings"> | null>(null)
