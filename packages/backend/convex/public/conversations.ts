@@ -31,7 +31,7 @@ export const create = mutation({
     const widgetSettings = await ctx.db
       .query("widgetSettings")
       .withIndex("by_organization_id", (q) =>
-        q.eq("organizationId", args.organizationId)
+        q.eq("organizationId", session.organizationId)
       )
       .unique()
 
