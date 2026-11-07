@@ -8,6 +8,8 @@ import { WidgetLoadingScreen } from "@/modules/widget/ui/screens/widget-loading-
 import { WidgetSelectionScreen } from "@/modules/widget/ui/screens/widget-selection-screen"
 import { WidgetChatScreen } from "../screens/widget-chat-screen"
 import { WidgetInboxScreen } from "../screens/widget-inbox-screen"
+import WidgetVoiceScreen from "../screens/widget-voice-screen"
+import WidgetContactScreen from "../screens/widget-contact-screen"
 
 interface Props {
   organizationId: string
@@ -25,15 +27,15 @@ export const WidgetView = ({ organizationId }: Props) => {
     error: <WidgetErrorScreen />,
     loading: <WidgetLoadingScreen organizationId={organizationId} />,
     selection: <WidgetSelectionScreen />,
-    voice: <p>TODO: Voice</p>,
+    voice: <WidgetVoiceScreen />,
     auth: <WidgetAuthScreen />,
     inbox: <WidgetInboxScreen />,
     chat: <WidgetChatScreen />,
-    contact: <p>TODO: Contact</p>,
+    contact: <WidgetContactScreen />,
   }
 
   return (
-    <main className="flex h-dvh w-full flex-col overflow-hidden rounded-xl border bg-muted">
+    <main className="flex h-full w-full flex-col overflow-hidden rounded-xl border bg-muted">
       {/* Renders only the component selected by the current Jotai route. */}
       {screenComponents[screen]}
     </main>
