@@ -14,16 +14,16 @@
     "typescript": "5.9.3"
   },
   "dependencies": {
-    "@ai-sdk/google": "^4.0.98",
-    "@ai-sdk/groq": "^4.0.62",
-    "@aws-sdk/client-secrets-manager": "^3.1157.0",
-    "@clerk/backend": "^3.17.2",
-    "@convex-dev/agent": "^0.7.8",
+    "@ai-sdk/google": "^4.0.113",
+    "@ai-sdk/groq": "^4.0.77",
+    "@aws-sdk/client-secrets-manager": "^3.1164.0",
+    "@clerk/backend": "^3.27.0",
+    "@convex-dev/agent": "^0.7.9",
     "@convex-dev/rag": "^0.7.8",
     "@vapi-ai/server-sdk": "^3.0.0",
-    "ai": "^7.0.142",
+    "ai": "^7.0.164",
     "convex": "^1.49.0",
-    "convex-helpers": "^0.1.127",
+    "convex-helpers": "^0.1.134",
     "zod": "^3.25.76"
   }
 }
