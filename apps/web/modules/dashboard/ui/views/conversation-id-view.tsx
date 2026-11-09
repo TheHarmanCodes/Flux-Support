@@ -35,6 +35,7 @@ import { useInfiniteScroll } from "@workspace/ui/hooks/use-infinite-scroll"
 import InfiniteScrollTrigger from "@workspace/ui/components/infinite-scroll-trigger"
 import { cn } from "@workspace/ui/lib/utils"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 const formSchema = z.object({
   message: z.string().min(1, "Message is required."),

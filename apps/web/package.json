@@ -19,6 +19,7 @@
     "@sentry/nextjs": "^10.70.0",
     "@workspace/backend": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "bowser": "^2.15.0",
     "cn": "^0.5.2",
     "convex": "^1.49.0",
     "countries-and-timezones": "^3.11.0",
