@@ -181,12 +181,20 @@ const ContactPanel = () => {
           value: (
             <span
               className={cn(
-                "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium",
                 isSessionExpired
                   ? "bg-destructive/10 text-destructive"
                   : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
               )}
             >
+              <span
+                className={cn(
+                  "size-1.5 rounded-full",
+                  isSessionExpired
+                    ? "bg-destructive"
+                    : "animate-pulse bg-emerald-500"
+                )}
+              />
               {isSessionExpired ? "Expired" : "Active"}
             </span>
           ),
