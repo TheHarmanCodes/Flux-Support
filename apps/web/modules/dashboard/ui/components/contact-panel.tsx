@@ -101,7 +101,7 @@ const ContactPanel = () => {
             label: "OS",
             value:
               userAgentInfo.os +
-              (userAgentInfo.os ? ` ${userAgentInfo.osVersion}` : ""),
+              (userAgentInfo.osVersion ? ` ${userAgentInfo.osVersion}` : ""),
           },
           {
             label: "Device",

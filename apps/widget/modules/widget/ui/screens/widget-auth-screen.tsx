@@ -29,7 +29,6 @@ const formSchema = z.object({
     .trim()
     .min(1, { message: "Email is required" })
     .max(254, { message: "Email must not exceed 254 characters" })
-    .toLowerCase()
     .email({ message: "Please enter a valid email address" }),
 })
 
