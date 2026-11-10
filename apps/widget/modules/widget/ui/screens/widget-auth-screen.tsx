@@ -24,7 +24,12 @@ import {
 // zod validation
 const formSchema = z.object({
   name: z.string().trim().min(1, { message: "Name is required" }),
-  email: z.string().trim().email({ message: "Invalid email" }),
+  email: z
+    .string()
+    .trim()
+    .min(1, { message: "Email is required" })
+    .max(254, { message: "Email must not exceed 254 characters" })
+    .email({ message: "Please enter a valid email address" }),
 })
 
 export const WidgetAuthScreen = () => {

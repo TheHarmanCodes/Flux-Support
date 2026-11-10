@@ -29,7 +29,7 @@ export const create = mutation({
   handler: async (ctx, args) => {
     // Sanitize inputs
     const sanitizedName = args.name.trim()
-    const sanitizedEmail = args.name.trim()
+    const sanitizedEmail = args.email.trim()
 
     const now = Date.now()
     const expiresAt = now + SESSION_DURATION_MS
