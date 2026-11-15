@@ -21,7 +21,7 @@
     "@workspace/ui": "workspace:*",
     "bowser": "^2.15.0",
     "cn": "^0.5.2",
-    "convex": "^1.49.0",
+    "convex": "^1.50.0",
     "countries-and-timezones": "^3.11.0",
     "date-fns": "^4.4.0",
     "jotai": "^2.20.3",
