@@ -52,7 +52,21 @@ export const create = action({
       })
     }
 
-    const shouldTriggerAgent = conversation.status === "unresolved"
+    // this refreshes the user's session if they are within the threshold.
+    await ctx.runMutation(internal.system.contactSession.refresh, {
+      contactSessionId: args.contactSessionId,
+    })
+
+    // we use runQuery here because we are in an action, and it doesn't have access to database.
+    const subscription = await ctx.runQuery(
+      internal.system.subscriptions.getByOrganizationId,
+      {
+        organizationId: conversation.organizationId,
+      }
+    )
+
+    const shouldTriggerAgent =
+      conversation.status === "unresolved" && subscription?.status === "active"
 
     if (shouldTriggerAgent) {
       const { messageId: promptMessageId } = await saveMessage(

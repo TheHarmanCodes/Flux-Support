@@ -39,6 +39,7 @@ export const upsert = mutation({
       .unique()
 
     if (existingWidgetSettings) {
+      //TODO: add a subscription check here, and show a toast or a good UI message saying like upgrade to PRO plan for update the setting as many times you want
       await ctx.db.patch(existingWidgetSettings._id, {
         greetMessage: args.greetMessage,
         defaultSuggestions: args.defaultSuggestions,

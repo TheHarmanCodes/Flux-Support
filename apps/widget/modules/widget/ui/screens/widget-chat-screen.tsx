@@ -186,7 +186,6 @@ export const WidgetChatScreen = () => {
             })}
         </AIConversationContent>
       </AIConversation>
-      {/* TODO: Add suggestions later on */}
       {toUIMessages(messages.results ?? [])?.length === 1 && (
         <AISuggestions className="flex w-full flex-col items-end p-2">
           {suggestions.map((suggestion) => {
