@@ -31,7 +31,13 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ClerkProvider>
+        <ClerkProvider
+          appearance={{
+            variables: {
+              colorPrimary: "#3b82f6",
+            },
+          }}
+        >
           <ThemeProvider>
             <TooltipProvider>
               {children}
