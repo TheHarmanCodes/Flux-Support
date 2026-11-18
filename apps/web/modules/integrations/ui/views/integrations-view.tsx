@@ -139,7 +139,7 @@ export const IntegrationDialog = ({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="min-w-lg">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-3xl">
         <DialogHeader>
           <DialogTitle>Integrate with your website</DialogTitle>
           <DialogDescription>
@@ -163,6 +163,7 @@ export const IntegrationDialog = ({
                 }}
                 size="icon"
                 variant="secondary"
+                aria-label="Copy integration code"
               >
                 <CopyIcon className="size-3" />
               </Button>
