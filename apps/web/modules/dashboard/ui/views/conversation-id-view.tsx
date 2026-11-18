@@ -1,15 +1,18 @@
 "use client"
 import React, { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Id } from "@workspace/backend/_generated/dataModel"
 import { api } from "@workspace/backend/_generated/api"
 import { useAction, useMutation, useQuery } from "convex/react"
+import { ConvexError } from "convex/values"
 import { toUIMessages, useThreadMessages } from "@convex-dev/agent/react"
 import { z } from "zod"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { Button } from "@workspace/ui/components/button"
-import { MoreHorizontalIcon, Wand2Icon } from "lucide-react"
+import { MoreHorizontalIcon, SparklesIcon, Wand2Icon } from "lucide-react"
+import { UpgradeModal } from "@/modules/billing/ui/component/upgrade-modal"
 import {
   AIConversation,
   AIConversationContent,
@@ -35,7 +38,6 @@ import { useInfiniteScroll } from "@workspace/ui/hooks/use-infinite-scroll"
 import InfiniteScrollTrigger from "@workspace/ui/components/infinite-scroll-trigger"
 import { cn } from "@workspace/ui/lib/utils"
 import { Skeleton } from "@workspace/ui/components/skeleton"
-import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 const formSchema = z.object({
   message: z.string().min(1, "Message is required."),
@@ -70,9 +72,27 @@ export const ConversationIdView = ({
       loadSize: 10, // last 10 chats will be loaded
     })
 
+  const router = useRouter()
   const [isEnhancing, setIsEnhancing] = useState(false)
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+  const subscriptionStatus = useQuery(api.private.subscriptions.getStatus)
+  const isPro = subscriptionStatus?.hasActiveSubscription
+
   const enhanceResponse = useAction(api.private.messages.enhanceResponse)
   const handleEnhanceResponse = async () => {
+    // If the organization is known not to have an active Pro subscription, show the upgrade UI directly
+    if (subscriptionStatus && !isPro) {
+      setIsUpgradeModalOpen(true)
+      toast.error("Pro Feature", {
+        description: "AI Message Enhancement is only available on the Pro plan.",
+        action: {
+          label: "View Plans",
+          onClick: () => router.push("/billing"),
+        },
+      })
+      return
+    }
+
     setIsEnhancing(true)
     const currentValue = form.getValues("message")
 
@@ -80,9 +100,28 @@ export const ConversationIdView = ({
       const response = await enhanceResponse({ prompt: currentValue })
 
       form.setValue("message", response)
-    } catch (err) {
-      console.error(err)
-      toast.error("Failed to enhance response")
+    } catch (err: unknown) {
+      const isSubscriptionError =
+        (err instanceof ConvexError &&
+          typeof err.data === "object" &&
+          err.data !== null &&
+          ((err.data as { code?: string }).code === "PLAN_UPGRADE_REQUIRED" ||
+            (err.data as { message?: string }).message?.includes("subscription"))) ||
+        (err instanceof Error && err.message.includes("subscription"))
+
+      if (isSubscriptionError) {
+        setIsUpgradeModalOpen(true)
+        toast.error("Pro Plan Required", {
+          description: "AI Message Enhancement requires an active Pro subscription.",
+          action: {
+            label: "Upgrade",
+            onClick: () => router.push("/billing"),
+          },
+        })
+      } else {
+        toast.error("Failed to enhance message. Please try again.")
+        console.error(err)
+      }
     } finally {
       setIsEnhancing(false)
     }
@@ -236,8 +275,13 @@ export const ConversationIdView = ({
                   }
                   onClick={handleEnhanceResponse}
                 >
-                  <Wand2Icon />
+                  <Wand2Icon className={!isPro ? "text-violet-500" : undefined} />
                   {isEnhancing ? "Enhancing..." : "Enhance"}
+                  {!isPro && (
+                    <span className="ml-1 inline-flex items-center gap-0.5 rounded bg-violet-500/15 px-1 py-0.5 text-[9px] font-bold text-violet-600 dark:text-violet-400">
+                      PRO
+                    </span>
+                  )}
                 </AIInputButton>
               </AIInputTools>
               <AIInputSubmit
@@ -254,6 +298,11 @@ export const ConversationIdView = ({
           </FieldGroup>
         </AIInput>
       </div>
+
+      <UpgradeModal
+        open={isUpgradeModalOpen}
+        onOpenChange={setIsUpgradeModalOpen}
+      />
     </div>
   )
 }

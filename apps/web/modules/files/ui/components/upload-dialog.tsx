@@ -1,8 +1,11 @@
 "use client"
 
-import { useAction } from "convex/react"
+import { useAction, useQuery } from "convex/react"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { ConvexError } from "convex/values"
+import { SparklesIcon } from "lucide-react"
 
 import { Label } from "@workspace/ui/components/label"
 import { Button } from "@workspace/ui/components/button"
@@ -35,7 +38,10 @@ export const UploadDialog = ({
   onOpenChange,
   onFileUploaded,
 }: UploadDialogProps) => {
+  const router = useRouter()
   const addFile = useAction(api.private.files.addFile)
+  const subscriptionStatus = useQuery(api.private.subscriptions.getStatus)
+  const isPro = subscriptionStatus?.hasActiveSubscription
 
   // State to manage the uploaded files and the upload form
   // internally uploadedFiles is an array of File objects, but we only allow one file to be uploaded at a time.
@@ -64,6 +70,22 @@ export const UploadDialog = ({
   }
 
   const handleUpload = async () => {
+    if (subscriptionStatus && !isPro) {
+      toast.error("Pro Plan Required", {
+        description:
+          "Uploading documents to your knowledge base is only available on the Pro plan.",
+        action: {
+          label: "Upgrade Plan",
+          onClick: () => {
+            onOpenChange(false)
+            router.push("/billing")
+          },
+        },
+        duration: 6000,
+      })
+      return
+    }
+
     setIsUploading(true)
     try {
       const blob = uploadedFiles[0]
@@ -88,9 +110,33 @@ export const UploadDialog = ({
       toast.success("File uploaded successfully")
       onFileUploaded?.()
       handleCancel()
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error uploading file:", err)
-      toast.error("Failed to upload file")
+
+      const isSubscriptionError =
+        (err instanceof ConvexError &&
+          typeof err.data === "object" &&
+          err.data !== null &&
+          ((err.data as { code?: string }).code === "PLAN_UPGRADE_REQUIRED" ||
+            (err.data as { message?: string }).message?.includes("subscription"))) ||
+        (err instanceof Error && err.message.includes("subscription"))
+
+      if (isSubscriptionError) {
+        toast.error("Pro Plan Required", {
+          description:
+            "Uploading documents to your knowledge base is only available on the Pro plan.",
+          action: {
+            label: "Upgrade Plan",
+            onClick: () => {
+              onOpenChange(false)
+              router.push("/billing")
+            },
+          },
+          duration: 6000,
+        })
+      } else {
+        toast.error("Failed to upload file. Please try again.")
+      }
     } finally {
       setIsUploading(false)
     }
@@ -114,6 +160,28 @@ export const UploadDialog = ({
             retrieval
           </DialogDescription>
         </DialogHeader>
+
+        {subscriptionStatus && !isPro && (
+          <div className="flex items-center justify-between rounded-lg border border-violet-500/20 bg-violet-500/10 p-3 text-xs text-violet-700 dark:text-violet-300">
+            <div className="flex items-center gap-2">
+              <SparklesIcon className="size-4 shrink-0 text-violet-600 dark:text-violet-400" />
+              <span>
+                Document upload is a <strong>Pro feature</strong>.
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs border-violet-500/30 hover:bg-violet-500/20"
+              onClick={() => {
+                onOpenChange(false)
+                router.push("/billing")
+              }}
+            >
+              Upgrade
+            </Button>
+          </div>
+        )}
 
         <div className="space-y-4">
           <div className="space-y-2">

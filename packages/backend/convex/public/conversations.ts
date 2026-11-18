@@ -2,7 +2,7 @@ import { ConvexError, v } from "convex/values"
 import { mutation, query } from "../_generated/server"
 import { supportAgent } from "../system/ai/agent/supportAgent"
 import { MessageDoc, saveMessage } from "@convex-dev/agent"
-import { components } from "../_generated/api"
+import { components, internal } from "../_generated/api"
 import { paginationOptsValidator } from "convex/server"
 
 /**
@@ -27,6 +27,11 @@ export const create = mutation({
         message: "Invalid session",
       })
     }
+
+    // after verifying the session, we refresh it to extend its expiration if it's within the threshold.
+    await ctx.runMutation(internal.system.contactSession.refresh, {
+      contactSessionId: args.contactSessionId,
+    })
 
     const widgetSettings = await ctx.db
       .query("widgetSettings")

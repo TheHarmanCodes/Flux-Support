@@ -22,7 +22,7 @@ export const upsert = internalMutation({
       })
     } else {
       await ctx.db.insert("subscriptions", {
-        organizationId: args.organizationId,
+      organizationId: args.organizationId,
         status: args.status,
       })
     }
@@ -35,7 +35,7 @@ export const getByOrganizationId = internalQuery({
   },
   handler: async (ctx, args) => {
     // Fetch the subscription for the given organization
-    return await await ctx.db
+    return await ctx.db
       .query("subscriptions")
       .withIndex("by_organization_id", (q) =>
         q.eq("organizationId", args.organizationId)

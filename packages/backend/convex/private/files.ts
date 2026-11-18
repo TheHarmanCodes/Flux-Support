@@ -13,6 +13,7 @@ import { extractTextContent } from "../lib/extractTextContent"
 import rag from "../system/ai/rag"
 import { Id } from "../_generated/dataModel"
 import { paginationOptsValidator } from "convex/server"
+import { internal } from "../_generated/api"
 
 // here we guess the mime type of the file based on its extension or its contents.
 // If we can't guess it, we default to application/octet-stream
@@ -50,6 +51,21 @@ export const addFile = action({
       throw new ConvexError({
         code: "UNAUTHORIZED",
         message: "Organization not found",
+      })
+    }
+
+    const subscription = await ctx.runQuery(
+      internal.system.subscriptions.getByOrganizationId,
+      {
+        organizationId: orgId,
+      }
+    )
+
+    if (subscription?.status !== "active") {
+      throw new ConvexError({
+        code: "PLAN_UPGRADE_REQUIRED",
+        message:
+          "Uploading documents to your knowledge base requires an active Pro subscription.",
       })
     }
 

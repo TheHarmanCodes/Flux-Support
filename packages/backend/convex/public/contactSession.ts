@@ -1,8 +1,6 @@
 import { v } from "convex/values"
 import { mutation } from "../_generated/server"
-
-// 24 hours in milliseconds
-const SESSION_DURATION_MS = 24 * 60 * 60 * 1000
+import { SESSION_DURATION_MS } from "../constant"
 
 export const create = mutation({
   args: {
@@ -45,6 +43,8 @@ export const create = mutation({
   },
 })
 
+// this validate function checks if the contact session is valid and not expired.
+//  It returns an object with a boolean `valid` property and an optional `reason` property if the session is invalid.
 export const validate = mutation({
   args: {
     contactSessionId: v.id("contactSession"),

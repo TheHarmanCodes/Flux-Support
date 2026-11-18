@@ -1,7 +1,6 @@
 import { Webhook } from "svix"
 import { httpRouter } from "convex/server"
 import { httpAction } from "./_generated/server"
-import { request } from "http"
 import { createClerkClient } from "@clerk/backend"
 import type { WebhookEvent } from "@clerk/backend"
 import { internal } from "./_generated/api"
@@ -19,7 +18,7 @@ http.route({
     const event = await validateRequest(request)
 
     if (!event) {
-      return new Response("Error occurrec", { status: 400 })
+      return new Response("Invalid webhook signature", { status: 400 })
     }
 
     switch (event.type) {
@@ -27,26 +26,37 @@ http.route({
         const subscription = event.data as {
           status: string
           payer?: {
-            organization_id: string
+            organization_id?: string
+            user_id?: string
           }
         }
         const organizationId = subscription.payer?.organization_id
 
         if (!organizationId) {
-          return new Response("Missing Organization ID", { status: 400 })
+          console.warn(
+            "Subscription event received without organization ID, skipping"
+          )
+          return new Response(null, { status: 200 })
         }
 
-        const newMaxAllowedMemberships =
-          subscription.status === "active" ? 5 : 1
+        try {
+          const newMaxAllowedMemberships =
+            subscription.status === "active" ? 5 : 1
 
-        await clerkClient.organizations.updateOrganization(organizationId, {
-          maxAllowedMemberships: 5,
-        })
+          await clerkClient.organizations.updateOrganization(organizationId, {
+            maxAllowedMemberships: newMaxAllowedMemberships,
+          })
 
-        await ctx.runMutation(internal.system.subscriptions.upsert, {
-          organizationId,
-          status: subscription.status,
-        })
+          await ctx.runMutation(internal.system.subscriptions.upsert, {
+            organizationId,
+            status: subscription.status,
+          })
+        } catch (error) {
+          console.error(
+            `Failed to process ${event.type} for organization ${organizationId}:`,
+            error
+          )
+        }
 
         break
       }
@@ -59,6 +69,12 @@ http.route({
 })
 
 async function validateRequest(req: Request): Promise<WebhookEvent | null> {
+  const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
+  if (!webhookSecret) {
+    console.error("Missing CLERK_WEBHOOK_SECRET environment variable")
+    return null
+  }
+
   const payloadString = await req.text()
   const svixHeaders = {
     "svix-id": req.headers.get("svix-id") || "",
@@ -66,11 +82,12 @@ async function validateRequest(req: Request): Promise<WebhookEvent | null> {
     "svix-signature": req.headers.get("svix-signature") || "",
   }
 
-  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET || "")
   try {
-    return wh.verify(payloadString, svixHeaders) as unknown as WebhookEvent
+    const wh = new Webhook(webhookSecret)
+    wh.verify(payloadString, svixHeaders)
+    return JSON.parse(payloadString) as unknown as WebhookEvent
   } catch (err) {
-    console.error("Error verifying webhook event ", err)
+    console.error("Error verifying webhook event:", err)
     return null
   }
 }
