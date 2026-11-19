@@ -138,8 +138,11 @@ export const IntegrationDialog = ({
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-3xl">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        overlayClassName="bg-black/10 backdrop-blur-none"
+        className="w-[calc(100%-2rem)] max-w-3xl min-w-lg"
+      >
         <DialogHeader>
           <DialogTitle>Integrate with your website</DialogTitle>
           <DialogDescription>
