@@ -175,11 +175,11 @@ export const IntegrationDialog = ({
 
           <div className="space-y-2">
             <div className="rounded-md bg-accent p-2 text-sm">
-              1. Copy the following code
+              2. Add the code in your page
             </div>
             <p className="text-sm text-muted-foreground">
-              Paste the the chatbox code above in your page. You can add it in
-              the HTML head section.
+              Paste the chatbox code above in your page. You can add it in the
+              HTML head section.
             </p>
           </div>
         </div>

@@ -134,7 +134,7 @@ export default function Home() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition-colors group-hover:bg-linear-to-b group-hover:from-[#3b82f6] group-hover:to-[#0b63f3] group-hover:text-white dark:bg-blue-950 dark:text-blue-400">
-                      <Icon className="size-4" />
+                      <Icon className="size-5" />
                     </div>
                     <ArrowRightIcon className="size-4 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </div>

@@ -2,7 +2,7 @@ import { createClerkClient } from "@clerk/backend"
 import { v } from "convex/values"
 import { action } from "../_generated/server"
 
-if(!process.env.CLERK_SECRET_KEY) {
+if (!process.env.CLERK_SECRET_KEY) {
   throw new Error("CLERK_SECRET_KEY is not set")
 }
 
@@ -23,7 +23,10 @@ export const validate = action({
       return { valid: true }
     } catch (err) {
       if (
-        (typeof err === "object" && err !== null && "status" in err && err.status === 404) ||
+        (typeof err === "object" &&
+          err !== null &&
+          "status" in err &&
+          err.status === 404) ||
         (typeof err === "object" &&
           err !== null &&
           "errors" in err &&
